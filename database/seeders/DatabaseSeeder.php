@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         User::create([
             'name' => 'Administrador',
-            'phone' => '(54) 99999-0000',
+            'phone' => '5554999990000',
             'email' => 'admin@gestcar.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'name' => 'Cliente Teste',
-            'phone' => '(54) 99999-1111',
+            'phone' => '5554999991111',
             'email' => 'cliente@teste.com',
             'password' => Hash::make('password'),
             'role' => 'cliente',
