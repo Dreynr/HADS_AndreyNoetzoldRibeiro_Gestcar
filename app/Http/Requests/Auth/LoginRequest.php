@@ -50,6 +50,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (! Auth::user()->active) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Sua conta está inativa. Fale com a estética.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
