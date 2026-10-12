@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -29,6 +30,25 @@ class User extends Authenticatable
         'preferred_contact',
         'preferences',
     ];
+
+    protected function phone(): Attribute
+    {
+        return Attribute::make(
+            set: function (?string $value) {
+                if ($value === null || trim($value) === '') {
+                    return null;
+                }
+
+                $digits = preg_replace('/\D/', '', $value);
+
+                if (!str_starts_with($digits, '55')) {
+                    $digits = '55' . $digits;
+                }
+
+                return $digits;
+            },
+        );
+    }
 
     public function isAdmin(): bool
     {
