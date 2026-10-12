@@ -18,7 +18,7 @@ class ClientRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['required', 'string', 'regex:/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/'],
             'email' => [
                 'required', 'string', 'lowercase', 'email', 'max:255',
                 Rule::unique('users')->ignore($userId),
@@ -30,6 +30,8 @@ class ClientRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'phone.required' => 'O telefone é obrigatório.',
+            'phone.regex' => 'Informe um celular válido com DDD. Ex.: (54) 99999-0000',
             'name.required' => 'O nome é obrigatório.',
             'email.required' => 'O e-mail é obrigatório.',
             'email.email' => 'Informe um e-mail válido.',
