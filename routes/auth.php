@@ -32,6 +32,7 @@ Route::middleware('guest')->group(function () {
         ->name('password.verify-code.form');
 
     Route::post('verify-code', [NewPasswordController::class, 'verifyCode'])
+        ->middleware('throttle:5,1')
         ->name('password.verify-code');
 
     Route::get('reset-password', [NewPasswordController::class, 'create'])
