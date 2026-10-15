@@ -76,10 +76,6 @@ class DatabaseSeeder extends Seeder
             'blocks_period' => false,
         ]);
 
-        Setting::setValue('weekday_start', '17');
-        Setting::setValue('weekend_start', '8');
-        Setting::setValue('close_hour', '22');
-        Setting::setValue('work_weekends', '1');
         Setting::setValue('max_simple_per_period', '2');
     }
 }

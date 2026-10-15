@@ -51,6 +51,7 @@ class RegisteredUserController extends Controller
         try {
             Mail::to($user->email)->send(new WelcomeClientMail($user));
         } catch (\Exception $e) {
+            report($e);
         }
 
         Auth::login($user);

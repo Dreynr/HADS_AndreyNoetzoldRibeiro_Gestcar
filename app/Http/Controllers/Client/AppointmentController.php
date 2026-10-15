@@ -92,6 +92,7 @@ class AppointmentController extends Controller
             try {
                 Mail::to($adminEmail)->send(new AppointmentBookedAdminMail($appointment));
             } catch (\Exception $e) {
+                report($e);
             }
         }
 
