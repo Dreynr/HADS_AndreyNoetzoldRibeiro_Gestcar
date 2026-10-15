@@ -9,6 +9,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Appointment extends Model
 {
+    const ALLOWED_TRANSITIONS = [
+        'pendente'   => ['confirmado', 'cancelado'],
+        'confirmado' => ['concluido', 'cancelado'],
+        'concluido'  => [],
+        'cancelado'  => [],
+    ];
+
+    public function canTransitionTo(string $newStatus): bool
+    {
+        return in_array($newStatus, self::ALLOWED_TRANSITIONS[$this->status] ?? []);
+    }
+
     protected $fillable = [
         'user_id',
         'vehicle_id',

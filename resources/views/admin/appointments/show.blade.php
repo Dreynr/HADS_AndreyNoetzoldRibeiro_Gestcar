@@ -11,6 +11,11 @@
                     {{ session('success') }}
                 </div>
             @endif
+            @if(session('error'))
+                <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                    {{ session('error') }}
+                </div>
+            @endif
 
             <div class="bg-white overflow-hidden shadow-sm rounded-lg p-4 sm:p-6">
 

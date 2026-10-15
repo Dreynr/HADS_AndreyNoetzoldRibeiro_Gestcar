@@ -72,6 +72,11 @@ class AppointmentController extends Controller
             'admin_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        if (!$appointment->canTransitionTo($request->status)) {
+            return redirect()->back()
+                ->with('error', "Não é possível mudar de \"{$appointment->status}\" para \"{$request->status}\".");
+        }
+
         $data = ['status' => $request->status];
         if ($request->filled('admin_notes')) {
             $data['admin_notes'] = $request->admin_notes;
@@ -85,18 +90,12 @@ class AppointmentController extends Controller
                 Mail::to($appointment->user->email)
                     ->send(new AppointmentStatusMail($appointment, $request->status, $request->admin_notes));
             } catch (\Exception $e) {
+                report($e);
             }
         }
 
-        $statusLabels = [
-            'pendente' => 'pendente',
-            'confirmado' => 'confirmado',
-            'concluido' => 'concluido',
-            'cancelado' => 'cancelado',
-        ];
-
         return redirect()->back()
-            ->with('success', "Agendamento marcado como {$statusLabels[$request->status]}.");
+            ->with('success', "Agendamento marcado como {$request->status}.");
     }
 
     public function show(Appointment $appointment): View
