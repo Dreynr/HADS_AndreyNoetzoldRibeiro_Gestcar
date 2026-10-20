@@ -14,7 +14,7 @@
                             Cadastrar Veiculo
                         </a>
                     </div>
-                @elseif($services->isEmpty())
+                @elseif($principalServices->isEmpty())
                     <div class="text-center py-4">
                         <p class="text-gray-500">Nenhum servico disponivel no momento.</p>
                     </div>
@@ -42,7 +42,7 @@
                                 <select id="service_id" name="service_id" required
                                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="">Selecione um servico</option>
-                                    @foreach($services as $service)
+                                    @foreach($principalServices as $service)
                                         <option value="{{ $service->id }}"
                                                 data-duration="{{ $service->duration_minutes }}"
                                                 data-price="{{ number_format($service->price, 2, ',', '.') }}"
@@ -53,6 +53,33 @@
                                 </select>
                                 <x-input-error :messages="$errors->get('service_id')" class="mt-2" />
                             </div>
+
+                            @if($extraServices->isNotEmpty())
+                                <div>
+                                    <x-input-label value="Servicos Extras (opcional)" />
+                                    <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        @foreach($extraServices as $extra)
+                                            <label class="flex items-start gap-2 p-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
+                                                <input type="checkbox" name="extras[]" value="{{ $extra->id }}"
+                                                       data-price="{{ number_format($extra->price, 2, ',', '.') }}"
+                                                       {{ in_array($extra->id, old('extras', [])) ? 'checked' : '' }}
+                                                       class="extra-checkbox rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5">
+                                                <div>
+                                                    <span class="text-sm font-medium text-gray-900">{{ $extra->name }}</span>
+                                                    <span class="text-sm text-indigo-600 font-semibold ml-1">R$ {{ number_format($extra->price, 2, ',', '.') }}</span>
+                                                    @if($extra->blocks_period)
+                                                        <p class="text-xs text-amber-700 mt-0.5">Reserva o periodo inteiro</p>
+                                                    @endif
+                                                    @if($extra->description)
+                                                        <p class="text-xs text-gray-500 mt-0.5">{{ Str::limit($extra->description, 60) }}</p>
+                                                    @endif
+                                                </div>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    <x-input-error :messages="$errors->get('extras')" class="mt-2" />
+                                </div>
+                            @endif
 
                             <div id="serviceInfo" class="hidden bg-indigo-50 border border-indigo-200 rounded-md p-4">
                                 <p class="text-sm text-indigo-700">
@@ -138,7 +165,7 @@
                                 scheduledAtInput.value = '';
                                 selectedSlot = null;
 
-                                fetch(`{{ route('appointments.available-slots') }}?service_id=${serviceId}&date=${date}`, {
+                                fetch(`{{ route('appointments.available-periods') }}?service_id=${serviceId}&date=${date}`, {
                                     headers: {
                                         'Accept': 'application/json',
                                         'X-Requested-With': 'XMLHttpRequest'

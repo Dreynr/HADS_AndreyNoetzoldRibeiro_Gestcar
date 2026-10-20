@@ -69,6 +69,31 @@ class Appointment extends Model
         return $base + $extrasTotal;
     }
 
+    /**
+     * A regra do periodo: basta um servico exigir o periodo todo para o
+     * periodo inteiro ficar reservado. Vale para o servico principal e
+     * para os extras, porque os dois ocupam a estetica da mesma forma.
+     */
+    public static function anyBlocksPeriod(iterable $services): bool
+    {
+        foreach ($services as $service) {
+            if ($service && $service->blocks_period) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A mesma regra aplicada a um agendamento ja gravado.
+     * `concat` devolve uma colecao nova, sem alterar a relacao carregada.
+     */
+    public function blocksPeriod(): bool
+    {
+        return static::anyBlocksPeriod($this->extras->concat([$this->service]));
+    }
+
     public static function periodLabel(string $period): string
     {
         return match ($period) {
@@ -94,10 +119,10 @@ class Appointment extends Model
         $appointments = static::whereDate('scheduled_at', $date)
             ->where('period', $period)
             ->whereIn('status', ['pendente', 'confirmado'])
-            ->with('service')
+            ->with(['service', 'extras'])
             ->get();
 
-        $hasBlocker = $appointments->contains(fn ($a) => $a->service->blocks_period);
+        $hasBlocker = $appointments->contains(fn ($a) => $a->blocksPeriod());
 
         if ($hasBlocker) {
             return ['available' => false, 'reason' => 'Periodo ocupado (servico completo)'];
@@ -120,10 +145,10 @@ class Appointment extends Model
         $appointments = static::whereDate('scheduled_at', $date)
             ->where('period', $period)
             ->whereIn('status', ['pendente', 'confirmado'])
-            ->with('service')
+            ->with(['service', 'extras'])
             ->get();
 
-        if ($appointments->contains(fn ($a) => $a->service->blocks_period)) {
+        if ($appointments->contains(fn ($a) => $a->blocksPeriod())) {
             return ['ok' => false, 'error' => 'Este periodo ja esta reservado para um servico completo.'];
         }
 

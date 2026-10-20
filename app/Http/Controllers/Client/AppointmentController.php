@@ -32,15 +32,23 @@ class AppointmentController extends Controller
     public function create(): View
     {
         $vehicles = auth()->user()->vehicles()->orderBy('model')->get();
-        $services = Service::where('active', true)->orderBy('name')->get();
+        $principalServices = Service::where('active', true)->principal()->orderBy('name')->get();
+        $extraServices = Service::where('active', true)->extra()->orderBy('name')->get();
 
-        return view('client.appointments.create', compact('vehicles', 'services'));
+        return view('client.appointments.create', compact('vehicles', 'principalServices', 'extraServices'));
     }
 
     public function store(AppointmentRequest $request): RedirectResponse
     {
         $vehicle = auth()->user()->vehicles()->findOrFail($request->vehicle_id);
-        $service = Service::where('active', true)->findOrFail($request->service_id);
+        $service = Service::where('active', true)->principal()->findOrFail($request->service_id);
+
+        // Carregados antes da checagem de vaga, porque um extra tambem
+        // pode exigir o periodo inteiro (D-13: o preco e o de agora).
+        $extras = Service::where('active', true)
+            ->extra()
+            ->whereIn('id', $request->extras ?? [])
+            ->get();
 
         $date = $request->date;
         $period = $request->period;
@@ -57,7 +65,11 @@ class AppointmentController extends Controller
             return back()->withInput()->withErrors(['period' => 'Periodo indisponivel para este dia.']);
         }
 
-        $check = Appointment::canBook($date, $period, $service->blocks_period);
+        $check = Appointment::canBook(
+            $date,
+            $period,
+            Appointment::anyBlocksPeriod($extras->concat([$service]))
+        );
         if (!$check['ok']) {
             return back()->withInput()->withErrors(['period' => $check['error']]);
         }
@@ -74,15 +86,8 @@ class AppointmentController extends Controller
             'notes' => $request->notes,
         ]);
 
-        if ($request->extras) {
-            $extraServices = Service::where('active', true)
-                ->extra()
-                ->whereIn('id', $request->extras)
-                ->get();
-
-            foreach ($extraServices as $extra) {
-                $appointment->extras()->attach($extra->id, ['price' => $extra->price]);
-            }
+        foreach ($extras as $extra) {
+            $appointment->extras()->attach($extra->id, ['price' => $extra->price]);
         }
 
         $appointment->load(['user', 'vehicle', 'service', 'extras']);

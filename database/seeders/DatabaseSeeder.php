@@ -73,7 +73,7 @@ class DatabaseSeeder extends Seeder
             'description' => 'Remocao de manchas de chuva acida dos vidros. Valor varia de R$50 a R$80 conforme quantidade de vidros.',
             'price' => 50.00,
             'duration_minutes' => 60,
-            'blocks_period' => false,
+            'blocks_period' => true,
         ]);
 
         Setting::setValue('max_simple_per_period', '2');
