@@ -7,7 +7,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::table('users')->whereNotNull('phone')->each(function ($user) {
+        DB::table('users')->whereNotNull('phone')->orderBy('id')->each(function ($user) {
             $digits = preg_replace('/\D/', '', $user->phone);
 
             if (!str_starts_with($digits, '55')) {
