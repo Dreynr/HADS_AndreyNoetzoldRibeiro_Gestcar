@@ -177,6 +177,8 @@ class AppointmentController extends Controller
         $request->validate([
             'date' => ['required', 'date', 'after:today'],
             'service_id' => ['nullable', 'exists:services,id'],
+            'extras' => ['nullable', 'array'],
+            'extras.*' => ['exists:services,id'],
         ]);
 
         $date = $request->date;
@@ -187,6 +189,13 @@ class AppointmentController extends Controller
             ? Service::find($request->service_id)
             : null;
 
+        // A tela precisa aplicar a mesma regra do store(): um extra tambem
+        // pode exigir o periodo inteiro e fechar o periodo.
+        $extras = Service::where('active', true)
+            ->extra()
+            ->whereIn('id', $request->extras ?? [])
+            ->get();
+
         $periodKeys = $isWeekend ? ['manha', 'tarde', 'noite'] : ['noite'];
 
         $periods = [];
@@ -194,7 +203,11 @@ class AppointmentController extends Controller
             $avail = Appointment::periodAvailability($date, $p);
 
             if ($service && $avail['available']) {
-                $check = Appointment::canBook($date, $p, $service->blocks_period);
+                $check = Appointment::canBook(
+                    $date,
+                    $p,
+                    Appointment::anyBlocksPeriod($extras->concat([$service]))
+                );
                 $avail['available'] = $check['ok'];
                 if (!$check['ok']) {
                     $avail['reason'] = $check['error'];

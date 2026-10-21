@@ -175,6 +175,9 @@
                                                     <div>
                                                         <span class="text-sm font-medium text-gray-900">{{ $extra->name }}</span>
                                                         <span class="text-sm text-indigo-600 font-semibold ml-1">R$ {{ number_format($extra->price, 2, ',', '.') }}</span>
+                                                        @if($extra->blocks_period)
+                                                            <p class="text-xs text-amber-700 mt-0.5">Reserva o periodo inteiro</p>
+                                                        @endif
                                                         @if($extra->description)
                                                             <p class="text-xs text-gray-500 mt-0.5">{{ Str::limit($extra->description, 60) }}</p>
                                                         @endif
@@ -371,15 +374,33 @@
         if (serviceSelect) {
             serviceSelect.addEventListener('change', function () {
                 updatePriceSummary();
-                if (selectedDate && selectedPeriod) {
+                if (selectedDate) {
                     loadPeriods(selectedDate);
                 }
             });
         }
 
+        // Marcar um extra pode mudar a disponibilidade: se ele reserva o periodo
+        // inteiro, periodos que ja tem outro carro deixam de servir.
         extraCheckboxes.forEach(cb => {
-            cb.addEventListener('change', updatePriceSummary);
+            cb.addEventListener('change', function () {
+                updatePriceSummary();
+                if (selectedDate) {
+                    loadPeriods(selectedDate);
+                }
+            });
         });
+
+        // Rede de protecao: sem periodo escolhido o servidor recusaria o envio.
+        const bookingForm = document.getElementById('bookingForm');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function (e) {
+                if (!document.getElementById('form_period').value) {
+                    e.preventDefault();
+                    periodsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        }
 
         loadBookedDates().then(() => renderCalendar());
 
@@ -468,6 +489,11 @@
             if (serviceSelect && serviceSelect.value) {
                 url += '&service_id=' + serviceSelect.value;
             }
+            extraCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    url += '&extras[]=' + encodeURIComponent(cb.value);
+                }
+            });
 
             fetch(url, {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
@@ -502,6 +528,13 @@
                     periodsGrid.appendChild(card);
                 });
 
+                // O periodo ja escolhido pode ter deixado de servir depois de
+                // marcar um extra que reserva o periodo inteiro.
+                const chosen = periods.find(p => p.key === selectedPeriod);
+                if (selectedPeriod && (!chosen || !chosen.available)) {
+                    clearPeriodSelection();
+                }
+
                 periodsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             })
             .catch(() => {
@@ -525,6 +558,12 @@
             setTimeout(() => {
                 bookingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
+        }
+
+        function clearPeriodSelection() {
+            selectedPeriod = null;
+            document.getElementById('form_period').value = '';
+            document.getElementById('summaryPeriod').textContent = 'selecione um periodo acima';
         }
 
         function formatDate(d) {
