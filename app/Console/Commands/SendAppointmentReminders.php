@@ -39,6 +39,7 @@ class SendAppointmentReminders extends Command
                 $appointment->update(['reminder_1day_sent' => true]);
                 $this->info("Lembrete 1 dia enviado: {$appointment->user->name}");
             } catch (\Exception $e) {
+                report($e);
                 $this->error("Erro ao enviar lembrete 1 dia para {$appointment->user->email}: {$e->getMessage()}");
             }
         }
@@ -67,6 +68,7 @@ class SendAppointmentReminders extends Command
                     $appointment->update(['reminder_1hour_sent' => true]);
                     $this->info("Lembrete 1 hora enviado: {$appointment->user->name}");
                 } catch (\Exception $e) {
+                    report($e);
                     $this->error("Erro ao enviar lembrete 1 hora para {$appointment->user->email}: {$e->getMessage()}");
                 }
             }
