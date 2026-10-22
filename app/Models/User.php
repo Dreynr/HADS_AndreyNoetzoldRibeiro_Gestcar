@@ -31,6 +31,9 @@ class User extends Authenticatable
         'birthday',
         'preferred_contact',
         'preferences',
+        'privacy_accepted_at',
+        'whatsapp_opt_in',
+        'whatsapp_opt_in_at',
     ];
 
     protected function phone(): Attribute

@@ -26,13 +26,24 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        $user->fill($request->safe()->except('whatsapp_opt_in'));
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        // A data marca QUANDO a escolha do WhatsApp mudou, entao so e
+        // tocada quando ela realmente muda (UC10-HU04).
+        $optIn = $request->boolean('whatsapp_opt_in');
+
+        if ($optIn !== (bool) $user->whatsapp_opt_in) {
+            $user->whatsapp_opt_in = $optIn;
+            $user->whatsapp_opt_in_at = $optIn ? now() : null;
+        }
+
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

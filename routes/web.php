@@ -13,6 +13,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Pagina publica: abre sem login (RNF09).
+Route::view('/politica-de-privacidade', 'privacy')->name('privacy');
+
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

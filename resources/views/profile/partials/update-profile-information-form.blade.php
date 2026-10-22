@@ -53,6 +53,24 @@
             @endif
         </div>
 
+        <div>
+            <label class="flex items-start gap-2 cursor-pointer">
+                <input type="hidden" name="whatsapp_opt_in" value="0">
+                <input type="checkbox" name="whatsapp_opt_in" value="1"
+                       {{ old('whatsapp_opt_in', $user->whatsapp_opt_in) ? 'checked' : '' }}
+                       class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5">
+                <span class="text-sm text-gray-700">
+                    Quero receber lembretes e avisos pelo WhatsApp.
+                    <span class="block text-xs text-gray-500">
+                        Desligando, voce continua recebendo os avisos por e-mail.
+                        Veja a <a href="{{ route('privacy') }}" target="_blank"
+                        class="text-indigo-600 hover:text-indigo-900 underline">politica de privacidade</a>.
+                    </span>
+                </span>
+            </label>
+            <x-input-error class="mt-2" :messages="$errors->get('whatsapp_opt_in')" />
+        </div>
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 

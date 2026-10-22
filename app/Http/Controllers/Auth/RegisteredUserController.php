@@ -37,13 +37,23 @@ class RegisteredUserController extends Controller
             'phone' => ['required', 'string', 'regex:/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            // 'accepted' exige que a caixa venha marcada (RNF09, D-08).
+            'privacy' => ['accepted'],
+            'whatsapp_opt_in' => ['nullable', 'boolean'],
+        ], [
+            'privacy.accepted' => 'E preciso aceitar a politica de privacidade para criar a conta.',
         ]);
+
+        $whatsappOptIn = $request->boolean('whatsapp_opt_in');
 
         $user = User::create([
             'name' => $request->name,
             'phone' => $request->phone,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'privacy_accepted_at' => now(),
+            'whatsapp_opt_in' => $whatsappOptIn,
+            'whatsapp_opt_in_at' => $whatsappOptIn ? now() : null,
         ]);
 
         event(new Registered($user));

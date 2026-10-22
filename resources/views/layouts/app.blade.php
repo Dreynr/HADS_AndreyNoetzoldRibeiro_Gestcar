@@ -31,6 +31,12 @@
             <main>
                 {{ $slot }}
             </main>
+
+            <footer class="py-6 text-center">
+                <a href="{{ route('privacy') }}" class="text-xs text-gray-500 hover:text-gray-900 underline">
+                    Politica de Privacidade
+                </a>
+            </footer>
         </div>
     </body>
 </html>

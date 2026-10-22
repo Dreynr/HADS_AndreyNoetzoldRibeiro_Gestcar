@@ -20,9 +20,12 @@ class RegistrationTest extends TestCase
     {
         $response = $this->post('/register', [
             'name' => 'Test User',
+            // Telefone obrigatorio desde o B-02; aceite da politica desde o B-06.
+            'phone' => '(54) 99999-0000',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'privacy' => '1',
         ]);
 
         $this->assertAuthenticated();

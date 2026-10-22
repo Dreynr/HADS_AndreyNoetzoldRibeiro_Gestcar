@@ -37,6 +37,33 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
+        <div class="mt-6 space-y-3">
+            <label class="flex items-start gap-2 cursor-pointer">
+                <input type="checkbox" name="privacy" value="1" {{ old('privacy') ? 'checked' : '' }}
+                       class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5">
+                <span class="text-sm text-gray-700">
+                    Li e aceito a
+                    <a href="{{ route('privacy') }}" target="_blank"
+                       class="text-indigo-600 hover:text-indigo-900 underline">politica de privacidade</a>.
+                </span>
+            </label>
+            <x-input-error :messages="$errors->get('privacy')" />
+
+            <label class="flex items-start gap-2 cursor-pointer">
+                <input type="hidden" name="whatsapp_opt_in" value="0">
+                <input type="checkbox" name="whatsapp_opt_in" value="1"
+                       {{ old('whatsapp_opt_in', '1') ? 'checked' : '' }}
+                       class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5">
+                <span class="text-sm text-gray-700">
+                    Quero receber lembretes e avisos pelo WhatsApp.
+                    <span class="block text-xs text-gray-500">
+                        Opcional. Desmarcando, voce continua recebendo tudo por e-mail,
+                        e pode mudar quando quiser no seu perfil.
+                    </span>
+                </span>
+            </label>
+        </div>
+
         <div class="mt-6">
             <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-md font-medium hover:bg-indigo-700 touch-manipulation active:bg-indigo-800 transition">
                 Cadastrar
