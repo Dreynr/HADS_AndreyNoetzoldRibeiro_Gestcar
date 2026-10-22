@@ -391,16 +391,46 @@
             });
         });
 
-        // Rede de protecao: sem periodo escolhido o servidor recusaria o envio.
         const bookingForm = document.getElementById('bookingForm');
+        const submitButton = bookingForm ? bookingForm.querySelector('button[type="submit"]') : null;
+        let submitting = false;
+
         if (bookingForm) {
             bookingForm.addEventListener('submit', function (e) {
+                // Sem periodo escolhido o servidor recusaria o envio.
                 if (!document.getElementById('form_period').value) {
                     e.preventDefault();
                     periodsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    return;
+                }
+
+                // Um segundo clique nao pode virar um segundo agendamento.
+                if (submitting) {
+                    e.preventDefault();
+                    return;
+                }
+
+                submitting = true;
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Agendando...';
+                    submitButton.classList.add('opacity-60', 'cursor-not-allowed');
                 }
             });
         }
+
+        // Ao voltar pelo botao do navegador a pagina vem do cache, com o botao
+        // ainda desabilitado. Aqui ele volta ao normal.
+        window.addEventListener('pageshow', function () {
+            submitting = false;
+
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Confirmar Agendamento';
+                submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+            }
+        });
 
         loadBookedDates().then(() => renderCalendar());
 
