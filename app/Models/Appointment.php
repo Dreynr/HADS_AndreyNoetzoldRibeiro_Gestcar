@@ -30,6 +30,8 @@ class Appointment extends Model
         'status',
         'notes',
         'admin_notes',
+        'reminder_1day_sent',
+        'reminder_1hour_sent',
     ];
 
     protected function casts(): array

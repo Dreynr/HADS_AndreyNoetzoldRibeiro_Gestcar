@@ -26,7 +26,7 @@ class SendAppointmentReminders extends Command
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
 
         $appointments = Appointment::whereDate('scheduled_at', $tomorrow)
-            ->where('status', 'confirmado')
+            ->whereIn('status', ['pendente', 'confirmado'])
             ->where('reminder_1day_sent', false)
             ->with(['user', 'vehicle', 'service', 'extras'])
             ->get();
@@ -48,7 +48,8 @@ class SendAppointmentReminders extends Command
     {
         $now = Carbon::now();
 
-        $appointments = Appointment::where('status', 'confirmado')
+        $appointments = Appointment::whereDate('scheduled_at', today())
+            ->whereIn('status', ['pendente', 'confirmado'])
             ->where('reminder_1hour_sent', false)
             ->with(['user', 'vehicle', 'service', 'extras'])
             ->get();
