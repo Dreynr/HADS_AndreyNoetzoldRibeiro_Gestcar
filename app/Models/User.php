@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -58,6 +60,63 @@ class User extends Authenticatable
     public function isCliente(): bool
     {
         return $this->role === 'cliente';
+    }
+
+    /**
+     * Quem pediu a exclusao da conta sai das listagens e do CRM, mas o
+     * registro continua existindo para os agendamentos nao perderem o dono.
+     */
+    public function scopeNotAnonymized($query)
+    {
+        return $query->whereNull('anonymized_at');
+    }
+
+    public function isAnonymized(): bool
+    {
+        return $this->anonymized_at !== null;
+    }
+
+    /**
+     * LGPD (D-07): a conta nao e apagada, e anonimizada. Os dados pessoais
+     * sao substituidos e os agendamentos ficam, ligados a um registro anonimo,
+     * para o faturamento de meses passados nao mudar sozinho.
+     *
+     * Tudo numa transacao: ou todas as tabelas mudam, ou nenhuma muda.
+     */
+    public function anonymize(): void
+    {
+        DB::transaction(function () {
+            $originalEmail = $this->email;
+
+            // A placa identifica o dono; modelo e cor ficam para o historico.
+            $this->vehicles()->update(['plate' => 'REMOVIDA']);
+
+            $this->clientNotes()->delete();
+            $this->followUps()->delete();
+
+            DB::table('password_reset_codes')->where('email', $originalEmail)->delete();
+
+            // forceFill ignora o $fillable: aqui a origem dos dados e o
+            // proprio sistema, nao um formulario.
+            $this->forceFill([
+                'name' => 'Cliente removido',
+                // .invalid e um dominio reservado que nunca existe de verdade,
+                // e o id mantem o e-mail unico. O e-mail original fica livre
+                // para um novo cadastro.
+                'email' => 'removido-' . $this->id . '@gestcar.invalid',
+                'phone' => null,
+                'birthday' => null,
+                'preferred_contact' => null,
+                'preferences' => null,
+                // O cast 'hashed' transforma isso num hash. Ninguem conhece
+                // a senha, entao ninguem entra mais nessa conta.
+                'password' => Str::random(40),
+                'remember_token' => null,
+                'active' => false,
+                'whatsapp_opt_in' => false,
+                'anonymized_at' => now(),
+            ])->save();
+        });
     }
 
     public function vehicles(): HasMany
@@ -159,6 +218,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'birthday' => 'date',
+            'privacy_accepted_at' => 'datetime',
+            'whatsapp_opt_in' => 'boolean',
+            'whatsapp_opt_in_at' => 'datetime',
+            'anonymized_at' => 'datetime',
         ];
     }
 }

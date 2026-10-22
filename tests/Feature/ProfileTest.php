@@ -76,7 +76,12 @@ class ProfileTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+
+        // D-07: a conta e anonimizada, nao apagada, para os agendamentos
+        // continuarem na agenda e o faturamento passado nao mudar sozinho.
+        $this->assertNotNull($user->fresh());
+        $this->assertNotNull($user->fresh()->anonymized_at);
+        $this->assertSame('Cliente removido', $user->fresh()->name);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void

@@ -16,7 +16,7 @@ class ClientController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = User::where('role', 'cliente');
+        $query = User::where('role', 'cliente')->notAnonymized();
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {

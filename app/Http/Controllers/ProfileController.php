@@ -42,15 +42,23 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = $request->user();
+
+        // Sem isso a estetica poderia ficar sem nenhum administrador.
+        if ($user->isAdmin()) {
+            return back()->withErrors([
+                'password' => 'Contas de administrador nao podem ser excluidas por aqui.',
+            ], 'userDeletion');
+        }
+
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);
 
-        $user = $request->user();
-
         Auth::logout();
 
-        $user->delete();
+        // D-07: anonimiza em vez de apagar, para os agendamentos ficarem.
+        $user->anonymize();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
