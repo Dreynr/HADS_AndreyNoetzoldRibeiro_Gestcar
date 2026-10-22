@@ -162,7 +162,7 @@
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm">
                                             <div class="font-medium text-gray-900">{{ $appt->user->name }}</div>
-                                            <div class="text-xs text-gray-500">{{ $appt->user->phone ?? $appt->user->email }}</div>
+                                            <div class="text-xs text-gray-500">{{ $appt->user->formattedPhone() ?? $appt->user->email }}</div>
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $appt->service->name }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $appt->vehicle->model }} - {{ $appt->vehicle->plate }}</td>

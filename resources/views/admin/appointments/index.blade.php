@@ -207,7 +207,7 @@
                                             </td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm">
                                                 <div class="font-medium text-gray-900">{{ $appointment->user->name }}</div>
-                                                <div class="text-gray-500">{{ $appointment->user->phone ?? $appointment->user->email }}</div>
+                                                <div class="text-gray-500">{{ $appointment->user->formattedPhone() ?? $appointment->user->email }}</div>
                                             </td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ $appointment->vehicle->model }} - {{ $appointment->vehicle->plate }}

@@ -25,7 +25,7 @@
                 </tr>
                 <tr>
                     <td style="padding:6px 0;color:#6b7280;font-size:13px;">Telefone</td>
-                    <td style="padding:6px 0;color:#1f2937;font-size:14px;">{{ $appointment->user->phone }}</td>
+                    <td style="padding:6px 0;color:#1f2937;font-size:14px;">{{ $appointment->user->formattedPhone() }}</td>
                 </tr>
                 <tr>
                     <td style="padding:6px 0;color:#6b7280;font-size:13px;">Veiculo</td>

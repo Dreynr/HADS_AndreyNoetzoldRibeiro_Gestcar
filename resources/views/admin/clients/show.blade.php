@@ -45,7 +45,7 @@
                             <p>
                                 <span class="font-medium text-gray-500">Telefone:</span>
                                 @if($client->phone)
-                                    <a href="tel:{{ $client->phone }}" class="text-indigo-600 sm:text-gray-900">{{ $client->phone }}</a>
+                                    <a href="tel:+{{ $client->phone }}" class="text-indigo-600 sm:text-gray-900">{{ $client->formattedPhone() }}</a>
                                 @else
                                     -
                                 @endif

@@ -25,7 +25,7 @@
 
         <div>
             <x-input-label for="phone" value="Telefone" />
-            <x-text-input id="phone" name="phone" type="tel" class="mt-1 block w-full" :value="old('phone', $user->phone)" required placeholder="(00) 00000-0000" autocomplete="tel" />
+            <x-text-input id="phone" name="phone" type="tel" class="mt-1 block w-full" :value="old('phone', $user->formattedPhone())" required placeholder="(00) 00000-0000" autocomplete="tel" />
             <x-input-error class="mt-2" :messages="$errors->get('phone')" />
         </div>
 

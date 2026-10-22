@@ -82,7 +82,7 @@
                             <dt class="text-xs sm:text-sm font-medium text-gray-500">Telefone</dt>
                             <dd class="text-sm text-gray-900 mt-0.5">
                                 @if($appointment->user->phone)
-                                    <a href="tel:{{ $appointment->user->phone }}" class="text-indigo-600 sm:text-gray-900">{{ $appointment->user->phone }}</a>
+                                    <a href="tel:+{{ $appointment->user->phone }}" class="text-indigo-600 sm:text-gray-900">{{ $appointment->user->formattedPhone() }}</a>
                                 @else
                                     -
                                 @endif

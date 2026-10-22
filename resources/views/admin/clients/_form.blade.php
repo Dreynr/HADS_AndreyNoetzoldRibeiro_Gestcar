@@ -9,7 +9,7 @@
     <div>
         <x-input-label for="phone" value="Telefone" />
         <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full"
-                      :value="old('phone', $client->phone ?? '')" placeholder="(00) 00000-0000" />
+                      :value="old('phone', $client?->formattedPhone() ?? '')" placeholder="(00) 00000-0000" />
         <x-input-error :messages="$errors->get('phone')" class="mt-2" />
     </div>
 

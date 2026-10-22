@@ -55,6 +55,38 @@ class User extends Authenticatable
         );
     }
 
+    /**
+     * O banco guarda o telefone no formato que a Z-API exige (55 + DDD +
+     * numero, so digitos). Para a tela, devolve no formato que o brasileiro
+     * le e que a validacao aceita de volta: (54) 99999-1111.
+     *
+     * E o caminho inverso do mutator acima: um grava, o outro exibe.
+     */
+    public function formattedPhone(): ?string
+    {
+        if (!$this->phone) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D/', '', $this->phone);
+
+        // Tira o codigo do pais, que nao se escreve no dia a dia.
+        if (strlen($digits) > 11 && str_starts_with($digits, '55')) {
+            $digits = substr($digits, 2);
+        }
+
+        if (strlen($digits) === 11) {
+            return sprintf('(%s) %s-%s', substr($digits, 0, 2), substr($digits, 2, 5), substr($digits, 7));
+        }
+
+        if (strlen($digits) === 10) {
+            return sprintf('(%s) %s-%s', substr($digits, 0, 2), substr($digits, 2, 4), substr($digits, 6));
+        }
+
+        // Formato inesperado: mostra como esta, em vez de esconder o dado.
+        return $this->phone;
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

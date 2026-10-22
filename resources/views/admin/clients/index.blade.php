@@ -84,7 +84,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center justify-between text-[11px] text-gray-500">
-                                    <span>{{ $client->phone ?? '-' }}</span>
+                                    <span>{{ $client->formattedPhone() ?? '-' }}</span>
                                     <span>{{ $client->completed_count ?? 0 }} servicos</span>
                                 </div>
                             </a>
@@ -114,7 +114,7 @@
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                             <div>{{ $client->email }}</div>
-                                            <div class="text-xs">{{ $client->phone ?? '-' }}</div>
+                                            <div class="text-xs">{{ $client->formattedPhone() ?? '-' }}</div>
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm">
                                             @php $seg = $client->segment(); @endphp
