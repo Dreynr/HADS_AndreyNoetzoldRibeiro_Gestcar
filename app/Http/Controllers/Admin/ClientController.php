@@ -66,9 +66,26 @@ class ClientController extends Controller
             ->with('success', 'Cliente cadastrado com sucesso.');
     }
 
-    public function show(User $client): View
+    public function show(Request $request, User $client): View
     {
         $client->load(['vehicles', 'clientNotes.admin', 'followUps']);
+
+        // Historico de lavagens do cliente, com filtro por veiculo e por
+        // periodo (UC06-HU03). E o historico do que foi atendido de fato,
+        // incluindo as lavagens avulsas.
+        $washQuery = $client->washes()->with('vehicle')->orderByDesc('performed_at');
+
+        if ($vehicleId = $request->input('wash_vehicle')) {
+            $washQuery->where('vehicle_id', $vehicleId);
+        }
+        if ($washFrom = $request->input('wash_from')) {
+            $washQuery->where('performed_at', '>=', $washFrom . ' 00:00:00');
+        }
+        if ($washTo = $request->input('wash_to')) {
+            $washQuery->where('performed_at', '<=', $washTo . ' 23:59:59');
+        }
+
+        $washes = $washQuery->get();
 
         $appointments = $client->appointments()
             ->with(['service', 'vehicle'])
@@ -99,7 +116,8 @@ class ClientController extends Controller
         $completedFollowUps = $client->followUps()->where('completed', true)->latest('completed_at')->limit(5)->get();
 
         return view('admin.clients.show', compact(
-            'client', 'appointments', 'stats', 'topServices', 'pendingFollowUps', 'completedFollowUps'
+            'client', 'appointments', 'stats', 'topServices', 'pendingFollowUps', 'completedFollowUps',
+            'washes', 'vehicleId', 'washFrom', 'washTo'
         ));
     }
 

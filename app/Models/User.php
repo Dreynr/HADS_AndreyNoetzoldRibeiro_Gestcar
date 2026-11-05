@@ -179,12 +179,16 @@ class User extends Authenticatable
         return $this->hasMany(FollowUp::class, 'client_id');
     }
 
+    /**
+     * Quanto o cliente ja pagou de verdade. Soma os valores gravados nas
+     * lavagens (D-13 e D-17), e nao o preco atual dos servicos: reajustar
+     * a tabela de precos nao pode mudar o historico de quem ja pagou.
+     *
+     * Conta tambem as lavagens avulsas, que nunca tiveram agendamento.
+     */
     public function totalSpent(): float
     {
-        return $this->appointments()
-            ->where('status', 'concluido')
-            ->join('services', 'appointments.service_id', '=', 'services.id')
-            ->sum('services.price');
+        return (float) $this->washes()->sum('amount');
     }
 
     public function completedAppointmentsCount(): int

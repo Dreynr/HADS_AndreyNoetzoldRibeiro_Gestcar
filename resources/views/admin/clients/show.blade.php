@@ -119,6 +119,60 @@
                         </div>
                     @endif
 
+                    {{-- Historico de lavagens --}}
+                    <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm sm:text-base font-semibold text-gray-800">Historico de lavagens</h4>
+                            <span class="text-xs text-gray-500">Total: <span class="font-semibold text-green-700">R$ {{ number_format($washes->sum('amount'), 2, ',', '.') }}</span></span>
+                        </div>
+
+                        {{-- Filtro por veiculo e por periodo. O GET mantem o filtro na URL. --}}
+                        <form method="GET" class="flex flex-wrap items-end gap-2 mb-4 text-xs">
+                            <div>
+                                <label for="wash_vehicle" class="block font-medium text-gray-600 mb-1">Veiculo</label>
+                                <select id="wash_vehicle" name="wash_vehicle" class="text-xs border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="">Todos</option>
+                                    @foreach($client->vehicles as $v)
+                                        <option value="{{ $v->id }}" @selected($vehicleId == $v->id)>{{ $v->model }} - {{ $v->plate }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label for="wash_from" class="block font-medium text-gray-600 mb-1">De</label>
+                                <input type="date" id="wash_from" name="wash_from" value="{{ $washFrom }}" class="text-xs border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="wash_to" class="block font-medium text-gray-600 mb-1">Ate</label>
+                                <input type="date" id="wash_to" name="wash_to" value="{{ $washTo }}" class="text-xs border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <button type="submit" class="px-3 py-1.5 bg-gray-700 text-white rounded-md hover:bg-gray-800 touch-manipulation">Filtrar</button>
+                            @if($vehicleId || $washFrom || $washTo)
+                                <a href="{{ route('admin.clients.show', $client) }}" class="px-2 py-1.5 text-gray-600 hover:text-gray-900">Limpar</a>
+                            @endif
+                        </form>
+
+                        @if($washes->isEmpty())
+                            <p class="text-sm text-gray-400 text-center py-4">Nenhuma lavagem registrada.</p>
+                        @else
+                            <div class="space-y-2">
+                                @foreach($washes as $wash)
+                                    <div class="flex items-center justify-between border border-gray-100 rounded-md px-3 py-2">
+                                        <div>
+                                            {{-- Nome gravado na lavagem, nao o nome atual do servico (D-17). --}}
+                                            <p class="text-sm text-gray-900">{{ $wash->service_name }}</p>
+                                            <p class="text-[11px] text-gray-500">
+                                                {{ $wash->performed_at->format('d/m/Y') }} ·
+                                                {{ $wash->vehicle->model }} - {{ $wash->vehicle->plate }}
+                                                @unless($wash->appointment_id) · avulsa @endunless
+                                            </p>
+                                        </div>
+                                        <span class="text-sm font-semibold text-green-700 whitespace-nowrap">R$ {{ number_format($wash->amount, 2, ',', '.') }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
                     {{-- Historico de agendamentos --}}
                     <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6">
                         <h4 class="text-sm sm:text-base font-semibold text-gray-800 mb-3">Historico de agendamentos</h4>
