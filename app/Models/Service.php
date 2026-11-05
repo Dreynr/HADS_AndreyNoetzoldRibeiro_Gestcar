@@ -43,4 +43,9 @@ class Service extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+
+    public function washes(): HasMany
+    {
+        return $this->hasMany(Wash::class);
+    }
 }

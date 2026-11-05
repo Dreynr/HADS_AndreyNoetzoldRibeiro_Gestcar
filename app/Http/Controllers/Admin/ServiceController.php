@@ -57,11 +57,11 @@ class ServiceController extends Controller
                 ->with('error', 'Nao e possivel excluir um servico com agendamentos pendentes ou confirmados.');
         }
 
-        if ($service->appointments()->exists()) {
+        if ($service->appointments()->exists() || $service->washes()->exists()) {
             $service->update(['active' => false]);
 
             return redirect()->route('admin.services.index')
-                ->with('success', 'Servico inativado (possui agendamentos vinculados).');
+                ->with('success', 'Servico inativado (possui historico de atendimentos).');
         }
 
         $service->delete();

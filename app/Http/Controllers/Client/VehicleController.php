@@ -50,9 +50,9 @@ class VehicleController extends Controller
     {
         $this->authorizeVehicle($vehicle);
 
-        if ($vehicle->appointments()->exists()) {
+        if ($vehicle->appointments()->exists() || $vehicle->washes()->exists()) {
             return redirect()->route('vehicles.index')
-                ->with('error', 'Este veículo possui agendamentos e não pode ser excluído.');
+                ->with('error', 'Este veículo possui histórico de atendimentos e não pode ser excluído.');
         }
 
         $vehicle->delete();

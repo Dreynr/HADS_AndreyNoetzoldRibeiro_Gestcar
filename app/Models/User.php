@@ -164,6 +164,11 @@ class User extends Authenticatable
         return $this->hasMany(Appointment::class);
     }
 
+    public function washes(): HasMany
+    {
+        return $this->hasMany(Wash::class);
+    }
+
     public function clientNotes(): HasMany
     {
         return $this->hasMany(ClientNote::class, 'client_id');

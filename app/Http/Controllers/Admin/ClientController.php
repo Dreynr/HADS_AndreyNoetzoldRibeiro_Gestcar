@@ -131,13 +131,15 @@ class ClientController extends Controller
 
     public function destroy(User $client): RedirectResponse
     {
-        $hasAppointments = $client->appointments()->exists();
+        // Lavagem tambem e historico: cliente que foi atendido alguma vez
+        // nunca e excluido, porque o atendimento entra no fechamento mensal.
+        $hasHistory = $client->appointments()->exists() || $client->washes()->exists();
 
-        if ($hasAppointments) {
+        if ($hasHistory) {
             $client->update(['active' => false]);
 
             return redirect()->route('admin.clients.index')
-                ->with('success', 'Cliente inativado (possui agendamentos vinculados).');
+                ->with('success', 'Cliente inativado (possui historico de atendimentos).');
         }
 
         $client->delete();
