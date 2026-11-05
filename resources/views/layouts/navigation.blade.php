@@ -23,6 +23,9 @@
                         <x-nav-link :href="route('admin.appointments.index')" :active="request()->routeIs('admin.appointments.*')">
                             Agenda
                         </x-nav-link>
+                        <x-nav-link :href="route('admin.washes.index')" :active="request()->routeIs('admin.washes.*')">
+                            Lavagens
+                        </x-nav-link>
                         <x-nav-link :href="route('admin.stock.index')" :active="request()->routeIs('admin.stock.*')">
                             Estoque
                         </x-nav-link>
@@ -97,6 +100,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.appointments.index')" :active="request()->routeIs('admin.appointments.*')">
                     Agenda
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.washes.index')" :active="request()->routeIs('admin.washes.*')">
+                    Lavagens
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.stock.index')" :active="request()->routeIs('admin.stock.*')">
                     Estoque
