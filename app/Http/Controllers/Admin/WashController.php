@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\WashCorrectionRequest;
 use App\Http\Requests\Admin\WashRequest;
 use App\Models\Appointment;
 use App\Models\Service;
@@ -72,6 +73,26 @@ class WashController extends Controller
 
         return redirect()->route('admin.washes.index')
             ->with('success', 'Lavagem avulsa registrada.');
+    }
+
+    public function edit(Wash $wash): View
+    {
+        $wash->load(['user', 'vehicle']);
+
+        return view('admin.washes.edit', compact('wash'));
+    }
+
+    /**
+     * Correcao: so valor e observacoes mudam. O `validated()` do
+     * WashCorrectionRequest ja devolve apenas esses dois campos, entao
+     * nada mais pode ser alterado nem forjando o formulario.
+     */
+    public function update(WashCorrectionRequest $request, Wash $wash): RedirectResponse
+    {
+        $wash->update($request->validated());
+
+        return redirect()->route('admin.washes.index')
+            ->with('success', 'Lavagem corrigida.');
     }
 
     public function storeForAppointment(WashRequest $request, Appointment $appointment): RedirectResponse

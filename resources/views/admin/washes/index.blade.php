@@ -52,6 +52,7 @@
                                     <th class="py-2 pe-3">Servico</th>
                                     <th class="py-2 pe-3">Origem</th>
                                     <th class="py-2 text-right">Valor</th>
+                                    <th class="py-2"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y">
@@ -70,6 +71,9 @@
                                             @endif
                                         </td>
                                         <td class="py-2 text-right font-semibold whitespace-nowrap">R$ {{ number_format($wash->amount, 2, ',', '.') }}</td>
+                                        <td class="py-2 ps-3 text-right">
+                                            <a href="{{ route('admin.washes.edit', $wash) }}" class="text-xs text-indigo-600 hover:text-indigo-800">Corrigir</a>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

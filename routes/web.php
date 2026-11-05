@@ -60,6 +60,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/lavagens', [WashController::class, 'index'])->name('washes.index');
     Route::get('/lavagens/nova', [WashController::class, 'create'])->name('washes.create');
     Route::post('/lavagens', [WashController::class, 'store'])->name('washes.store');
+    Route::get('/lavagens/{wash}/editar', [WashController::class, 'edit'])->name('washes.edit');
+    Route::patch('/lavagens/{wash}', [WashController::class, 'update'])->name('washes.update');
     Route::get('/estoque', fn () => view('admin.stock.index'))->name('stock.index');
     Route::get('/relatorios', fn () => view('admin.reports.index'))->name('reports.index');
 });
