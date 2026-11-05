@@ -2,26 +2,31 @@
 
 namespace Tests\Feature;
 
-use App\Models\Appointment;
 use App\Models\User;
+use App\Models\Vehicle;
+use App\Models\Wash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
  * B-07 item 9 / RF09 — a segmentacao automatica do CRM.
  * A ordem das regras importa: inatividade vence a contagem de visitas.
+ *
+ * Desde a D-18, visita e lavagem registrada, e nao agendamento concluido.
  */
 class ClientSegmentTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function clientWith(int $completed, int $daysAgo): User
+    private function clientWith(int $visits, int $daysAgo): User
     {
         $client = User::factory()->create(['role' => 'cliente']);
+        $vehicle = Vehicle::factory()->create(['user_id' => $client->id]);
 
-        Appointment::factory()->count($completed)->status('concluido')->create([
+        Wash::factory()->count($visits)->create([
             'user_id' => $client->id,
-            'scheduled_at' => now()->subDays($daysAgo),
+            'vehicle_id' => $vehicle->id,
+            'performed_at' => now()->subDays($daysAgo),
         ]);
 
         return $client;

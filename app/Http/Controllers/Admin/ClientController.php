@@ -30,9 +30,12 @@ class ClientController extends Controller
             $query->get()->filter(fn ($c) => $c->segment() === $segment);
         }
 
-        $clients = $query->withCount(['appointments as completed_count' => function ($q) {
-            $q->where('status', 'concluido');
-        }])->orderBy('name')->paginate(15)->withQueryString();
+        // Conta as lavagens, nao os agendamentos concluidos (D-18): e o
+        // mesmo numero que o `visitsCount()` usa na ficha do cliente.
+        $clients = $query->withCount('washes as completed_count')
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
 
         $pendingFollowUps = FollowUp::where('completed', false)
             ->where('due_date', '<=', today())
@@ -94,12 +97,12 @@ class ClientController extends Controller
 
         $stats = [
             'total_spent' => $client->totalSpent(),
-            'completed' => $client->completedAppointmentsCount(),
+            'completed' => $client->visitsCount(),
             'total' => $appointments->count(),
             'cancelled' => $appointments->where('status', 'cancelado')->count(),
             'segment' => $client->segment(),
             'days_since_last' => $client->daysSinceLastVisit(),
-            'last_date' => $client->lastAppointmentDate(),
+            'last_date' => $client->lastVisitDate(),
         ];
 
         $topServices = $appointments->where('status', 'concluido')

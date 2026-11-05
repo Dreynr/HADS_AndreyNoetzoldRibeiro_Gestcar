@@ -191,33 +191,48 @@ class User extends Authenticatable
         return (float) $this->washes()->sum('amount');
     }
 
-    public function completedAppointmentsCount(): int
+    /**
+     * Quantas vezes o cliente ja foi atendido.
+     *
+     * Conta lavagens, e nao agendamentos (D-18): agendamento e intencao e
+     * pode nunca ter virado atendimento, e a lavagem avulsa e atendimento
+     * que nunca teve agendamento.
+     */
+    public function visitsCount(): int
     {
-        return $this->appointments()->where('status', 'concluido')->count();
+        return $this->washes()->count();
     }
 
-    public function lastAppointmentDate(): ?\Carbon\Carbon
+    /**
+     * Quando o cliente esteve na estetica pela ultima vez, pela mesma
+     * razao do visitsCount: quem marcou e nao apareceu nao visitou.
+     */
+    public function lastVisitDate(): ?\Carbon\Carbon
     {
-        return $this->appointments()
-            ->whereIn('status', ['concluido', 'confirmado', 'pendente'])
-            ->latest('scheduled_at')
-            ->value('scheduled_at');
+        return $this->washes()
+            ->latest('performed_at')
+            ->value('performed_at');
     }
 
     public function daysSinceLastVisit(): ?int
     {
-        $last = $this->lastAppointmentDate();
+        $last = $this->lastVisitDate();
         return $last ? (int) $last->diffInDays(now()) : null;
     }
 
+    /**
+     * Segmentacao do CRM (RF09). A ordem importa: a inatividade vence a
+     * contagem de visitas, porque um cliente VIP sumido ha quatro meses
+     * precisa ser chamado de volta, e nao elogiado.
+     */
     public function segment(): string
     {
-        $completed = $this->completedAppointmentsCount();
+        $visits = $this->visitsCount();
         $days = $this->daysSinceLastVisit();
 
         if ($days !== null && $days > 90) return 'inativo';
-        if ($completed >= 10) return 'vip';
-        if ($completed >= 3) return 'recorrente';
+        if ($visits >= 10) return 'vip';
+        if ($visits >= 3) return 'recorrente';
         return 'novo';
     }
 

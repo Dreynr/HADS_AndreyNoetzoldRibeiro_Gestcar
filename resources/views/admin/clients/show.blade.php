@@ -85,7 +85,7 @@
                 </div>
                 <div class="bg-white shadow-sm rounded-lg p-3 sm:p-4 text-center">
                     <p class="text-lg sm:text-2xl font-bold text-indigo-600">{{ $stats['completed'] }}</p>
-                    <p class="text-[10px] sm:text-xs text-gray-500">Concluidos</p>
+                    <p class="text-[10px] sm:text-xs text-gray-500">Atendimentos</p>
                 </div>
                 <div class="bg-white shadow-sm rounded-lg p-3 sm:p-4 text-center">
                     <p class="text-lg sm:text-2xl font-bold {{ $stats['days_since_last'] !== null && $stats['days_since_last'] > 60 ? 'text-red-600' : 'text-gray-800' }}">

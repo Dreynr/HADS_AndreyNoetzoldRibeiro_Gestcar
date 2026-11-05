@@ -85,7 +85,7 @@
                                 </div>
                                 <div class="flex items-center justify-between text-[11px] text-gray-500">
                                     <span>{{ $client->formattedPhone() ?? '-' }}</span>
-                                    <span>{{ $client->completed_count ?? 0 }} servicos</span>
+                                    <span>{{ $client->completed_count ?? 0 }} atendimentos</span>
                                 </div>
                             </a>
                         @endforeach
