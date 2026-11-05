@@ -186,6 +186,68 @@
                     </div>
                 </div>
 
+
+                @if($appointment->status === 'concluido')
+                    <div class="border-t pt-4 mt-5">
+                        <h4 class="text-xs sm:text-sm font-semibold text-gray-700 mb-3">Lavagem Realizada</h4>
+
+                        @if($appointment->wash)
+                            {{-- Lavagem ja registrada: e o fato que entra no fechamento mensal. --}}
+                            <dl class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 bg-gray-50 rounded-md p-3">
+                                <div>
+                                    <dt class="text-xs font-medium text-gray-500">Servico</dt>
+                                    <dd class="text-sm text-gray-900 mt-0.5">{{ $appointment->wash->service_name }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs font-medium text-gray-500">Valor Cobrado</dt>
+                                    <dd class="text-sm font-semibold text-green-700 mt-0.5">R$ {{ number_format($appointment->wash->amount, 2, ',', '.') }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs font-medium text-gray-500">Data</dt>
+                                    <dd class="text-sm text-gray-900 mt-0.5">{{ $appointment->wash->performed_at->format('d/m/Y') }}</dd>
+                                </div>
+                                @if($appointment->wash->notes)
+                                    <div class="col-span-2 sm:col-span-3">
+                                        <dt class="text-xs font-medium text-gray-500">Observacoes</dt>
+                                        <dd class="text-sm text-gray-600 mt-0.5">{{ $appointment->wash->notes }}</dd>
+                                    </div>
+                                @endif
+                            </dl>
+                        @else
+                            <form method="POST" action="{{ route('admin.washes.store-for-appointment', $appointment) }}">
+                                @csrf
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    <div>
+                                        <label for="amount" class="block text-xs font-medium text-gray-700 mb-1">Valor Cobrado (R$)</label>
+                                        {{-- Vem com o valor do servico + extras, mas o admin pode ajustar: desconto, cortesia. --}}
+                                        <input type="number" step="0.01" min="0" id="amount" name="amount"
+                                               value="{{ old('amount', number_format($appointment->totalPrice(), 2, '.', '')) }}"
+                                               class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                        @error('amount')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                                    </div>
+                                    <div>
+                                        <label for="performed_at" class="block text-xs font-medium text-gray-700 mb-1">Data do Atendimento</label>
+                                        <input type="date" id="performed_at" name="performed_at" max="{{ today()->format('Y-m-d') }}"
+                                               value="{{ old('performed_at', $appointment->scheduled_at->min(today())->format('Y-m-d')) }}"
+                                               class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                        @error('performed_at')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label for="wash_notes" class="block text-xs font-medium text-gray-700 mb-1">Observacoes (opcional)</label>
+                                        <textarea id="wash_notes" name="notes" rows="2" maxlength="1000"
+                                                  class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                                  placeholder="Ex: desconto de cliente antigo, servico extra combinado na hora...">{{ old('notes') }}</textarea>
+                                        @error('notes')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                                    </div>
+                                </div>
+                                <button type="submit" class="mt-3 px-4 py-2.5 sm:py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 active:bg-indigo-800 touch-manipulation">
+                                    Registrar lavagem
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                @endif
+
                 <div class="mt-5 sm:mt-6">
                     <a href="{{ route('admin.appointments.index') }}" class="text-sm text-gray-600 hover:text-gray-900 py-1 touch-manipulation">&larr; Voltar para a agenda</a>
                 </div>

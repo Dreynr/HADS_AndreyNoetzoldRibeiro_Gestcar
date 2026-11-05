@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Appointment extends Model
 {
@@ -59,11 +60,42 @@ class Appointment extends Model
         return $this->belongsTo(Service::class);
     }
 
+    /**
+     * Um agendamento concluido vira uma lavagem (D-14). `hasOne` porque o
+     * atendimento acontece uma vez; lavagem avulsa nao tem agendamento.
+     */
+    public function wash(): HasOne
+    {
+        return $this->hasOne(Wash::class);
+    }
+
     public function extras(): BelongsToMany
     {
         return $this->belongsToMany(Service::class, 'appointment_extras')
             ->withPivot('price')
             ->withTimestamps();
+    }
+
+    /**
+     * Registra o atendimento realizado a partir deste agendamento (D-14).
+     * O valor vem da tela, porque o admin pode dar desconto; o nome do
+     * servico e copiado pelo `fromService`, para o relatorio de um mes
+     * fechado nao mudar se o servico for renomeado depois (D-13, D-17).
+     */
+    public function registerWash(array $data): Wash
+    {
+        $wash = Wash::fromService($this->service, [
+            'appointment_id' => $this->id,
+            'user_id' => $this->user_id,
+            'vehicle_id' => $this->vehicle_id,
+            'amount' => $data['amount'],
+            'notes' => $data['notes'] ?? null,
+            'performed_at' => $data['performed_at'],
+        ]);
+
+        $wash->save();
+
+        return $wash;
     }
 
     public function totalPrice(): float

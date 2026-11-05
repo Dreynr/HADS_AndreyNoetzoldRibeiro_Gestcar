@@ -100,7 +100,9 @@ class AppointmentController extends Controller
 
     public function show(Appointment $appointment): View
     {
-        $appointment->load(['user', 'vehicle', 'service', 'extras']);
+        // `wash` vem junto para a tela saber se o atendimento ja foi
+        // registrado, sem uma consulta a mais dentro da view.
+        $appointment->load(['user', 'vehicle', 'service', 'extras', 'wash']);
 
         return view('admin.appointments.show', compact('appointment'));
     }

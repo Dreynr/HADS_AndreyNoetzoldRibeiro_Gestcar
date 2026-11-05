@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AppointmentController as AdminAppointmentController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\WashController;
 use App\Http\Controllers\Client\AppointmentController;
 use App\Http\Controllers\Client\VehicleController;
 use App\Http\Controllers\DashboardController;
@@ -54,6 +55,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/agenda', [AdminAppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/agenda/{appointment}', [AdminAppointmentController::class, 'show'])->name('appointments.show');
     Route::patch('/agenda/{appointment}/status', [AdminAppointmentController::class, 'updateStatus'])->name('appointments.update-status');
+    Route::post('/agenda/{appointment}/lavagem', [WashController::class, 'storeForAppointment'])->name('washes.store-for-appointment');
+
+    Route::get('/lavagens', [WashController::class, 'index'])->name('washes.index');
+    Route::get('/lavagens/nova', [WashController::class, 'create'])->name('washes.create');
+    Route::post('/lavagens', [WashController::class, 'store'])->name('washes.store');
     Route::get('/estoque', fn () => view('admin.stock.index'))->name('stock.index');
     Route::get('/relatorios', fn () => view('admin.reports.index'))->name('reports.index');
 });
