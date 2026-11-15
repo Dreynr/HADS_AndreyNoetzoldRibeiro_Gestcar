@@ -81,12 +81,22 @@ class Product extends Model
      * para duas saidas ao mesmo tempo nao lerem o mesmo saldo e derrubarem o
      * estoque para negativo.
      *
-     * @throws RuntimeException quando a saida e maior que o saldo.
+     * @throws RuntimeException quando o produto esta inativo ou a saida e
+     *                          maior que o saldo.
      */
     public function registerMovement(string $type, float $quantity, ?string $notes = null): StockMovement
     {
         return DB::transaction(function () use ($type, $quantity, $notes) {
             $atual = static::query()->lockForUpdate()->find($this->id);
+
+            // Produto inativo saiu de uso: aceitar entrada ou saida nele
+            // faria o saldo de algo que a estetica nao usa mais continuar
+            // mudando, e esse saldo nao aparece no alerta de reposicao.
+            if (!$atual->active) {
+                throw new RuntimeException(
+                    "O produto {$atual->name} esta inativo e nao aceita movimentacao. Ative o produto antes."
+                );
+            }
 
             $novoSaldo = $type === self::TYPE_OUT
                 ? (float) $atual->quantity - $quantity

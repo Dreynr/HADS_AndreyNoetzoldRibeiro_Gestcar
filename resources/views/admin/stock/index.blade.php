@@ -63,7 +63,50 @@
                 @if($products->isEmpty())
                     <p class="text-sm text-gray-500 py-6 text-center">Nenhum produto cadastrado.</p>
                 @else
-                    <div class="overflow-x-auto">
+                    {{-- No celular a tabela obrigava rolar para o lado e os botoes
+                         ficavam fora da tela. Abaixo de 640px vira cartao. --}}
+                    <div class="sm:hidden space-y-3">
+                        @foreach($products as $product)
+                            <div class="border rounded-lg p-3 {{ $product->active ? '' : 'opacity-60' }}">
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="font-medium text-gray-800">{{ $product->name }}</span>
+
+                                    @if(!$product->active)
+                                        <span class="shrink-0 inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">Inativo</span>
+                                    @elseif($product->isBelowMinimum())
+                                        <span class="shrink-0 inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800">Repor</span>
+                                    @else
+                                        <span class="shrink-0 inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">Ok</span>
+                                    @endif
+                                </div>
+
+                                <p class="mt-1 text-sm {{ $product->isBelowMinimum() ? 'text-red-700 font-semibold' : 'text-gray-700' }}">
+                                    {{ number_format($product->quantity, 2, ',', '.') }} {{ $product->unit }}
+                                    <span class="text-xs font-normal text-gray-500">
+                                        (minimo {{ number_format($product->min_quantity, 2, ',', '.') }})
+                                    </span>
+                                </p>
+
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @if($product->active)
+                                        <a href="{{ route('admin.stock.movements', $product) }}"
+                                           class="px-3 py-2 text-xs bg-indigo-600 text-white rounded-md touch-manipulation">Movimentar</a>
+                                    @endif
+                                    <a href="{{ route('admin.stock.edit', $product) }}"
+                                       class="px-3 py-2 text-xs bg-gray-600 text-white rounded-md touch-manipulation">Editar</a>
+                                    <form method="POST" action="{{ route('admin.stock.toggle-active', $product) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded-md touch-manipulation">
+                                            {{ $product->active ? 'Inativar' : 'Ativar' }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="hidden sm:block overflow-x-auto">
                         <table class="min-w-full text-sm">
                             <thead>
                                 <tr class="text-left text-xs text-gray-500 border-b">
@@ -99,10 +142,13 @@
                                         </td>
 
                                         <td class="py-3 text-right whitespace-nowrap">
-                                            <a href="{{ route('admin.stock.movements', $product) }}"
-                                               class="inline-block px-2 py-1 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700 touch-manipulation">
-                                                Movimentar
-                                            </a>
+                                            {{-- Produto inativo nao movimenta, entao nao oferece o botao. --}}
+                                            @if($product->active)
+                                                <a href="{{ route('admin.stock.movements', $product) }}"
+                                                   class="inline-block px-2 py-1 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700 touch-manipulation">
+                                                    Movimentar
+                                                </a>
+                                            @endif
                                             <a href="{{ route('admin.stock.edit', $product) }}"
                                                class="inline-block px-2 py-1 text-xs bg-gray-600 text-white rounded-md hover:bg-gray-700 touch-manipulation">
                                                 Editar

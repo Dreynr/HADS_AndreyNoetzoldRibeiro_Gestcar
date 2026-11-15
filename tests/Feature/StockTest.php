@@ -222,6 +222,43 @@ class StockTest extends TestCase
             ->assertSee('Compra');
     }
 
+    /**
+     * Produto inativo saiu de uso: movimentar nele faria o saldo de algo que
+     * a estetica nao usa mais continuar mudando, fora do alerta de reposicao.
+     */
+    public function test_produto_inativo_nao_aceita_movimentacao(): void
+    {
+        $product = Product::factory()->withBalance(5)->create(['active' => false]);
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.stock.movements.store', $product), [
+                'type' => 'entrada',
+                'quantity' => 3,
+            ])
+            ->assertSessionHas('error');
+
+        $this->assertEquals(5, $product->fresh()->quantity);
+        $this->assertSame(0, $product->movements()->count());
+    }
+
+    public function test_produto_inativo_nao_mostra_o_botao_movimentar(): void
+    {
+        $product = Product::factory()->withBalance(5)->create([
+            'name' => 'Descontinuado',
+            'active' => false,
+        ]);
+
+        $html = $this->actingAs($this->admin())
+            ->get(route('admin.stock.index'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringNotContainsString(
+            route('admin.stock.movements', $product),
+            $html
+        );
+    }
+
     public function test_cliente_nao_acessa_o_estoque(): void
     {
         $cliente = User::factory()->create(['role' => 'cliente']);

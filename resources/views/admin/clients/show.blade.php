@@ -22,6 +22,12 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             {{-- Header: info + segmento --}}
             <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">

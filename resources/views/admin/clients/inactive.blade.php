@@ -18,6 +18,12 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <div class="bg-white overflow-hidden shadow-sm rounded-lg p-4 sm:p-6">
 
                 <p class="text-sm text-gray-500 mb-4">
@@ -31,7 +37,52 @@
                         Nenhum cliente inativo no momento.
                     </p>
                 @else
-                    <div class="overflow-x-auto">
+                    {{-- No celular vira cartao: a tabela empurrava os botoes de
+                         WhatsApp e de retorno para fora da tela. --}}
+                    <div class="sm:hidden space-y-3">
+                        @foreach($clients as $client)
+                            <div class="border rounded-lg p-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <a href="{{ route('admin.clients.show', $client) }}"
+                                       class="font-medium text-indigo-600">{{ $client->name }}</a>
+                                    <span class="shrink-0 text-xs font-semibold text-red-700">
+                                        {{ $client->daysSinceLastVisit() }} dias
+                                    </span>
+                                </div>
+
+                                <p class="mt-1 text-xs text-gray-500">
+                                    ultima visita em {{ $client->lastVisitDate()->format('d/m/Y') }}
+                                    · {{ $client->visitsCount() }} {{ $client->visitsCount() === 1 ? 'visita' : 'visitas' }}
+                                    · R$ {{ number_format($client->totalSpent(), 2, ',', '.') }}
+                                </p>
+
+                                @if($client->phone)
+                                    <p class="mt-1 text-xs text-gray-600">{{ $client->formattedPhone() }}</p>
+                                @endif
+                                <p class="text-xs text-gray-400">{{ $client->email }}</p>
+
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @if($client->phone)
+                                        <a href="https://wa.me/{{ $client->phone }}" target="_blank" rel="noopener"
+                                           class="px-3 py-2 text-xs bg-green-600 text-white rounded-md touch-manipulation">WhatsApp</a>
+                                    @endif
+
+                                    <form method="POST" action="{{ route('admin.clients.follow-ups.store', $client) }}">
+                                        @csrf
+                                        <input type="hidden" name="type" value="retorno">
+                                        <input type="hidden" name="title" value="Chamar de volta">
+                                        <input type="hidden" name="description" value="Cliente sem vir ha {{ $client->daysSinceLastVisit() }} dias.">
+                                        <input type="hidden" name="due_date" value="{{ today()->format('Y-m-d') }}">
+                                        <button type="submit" class="px-3 py-2 text-xs bg-indigo-600 text-white rounded-md touch-manipulation">
+                                            Criar retorno
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="hidden sm:block overflow-x-auto">
                         <table class="min-w-full text-sm">
                             <thead>
                                 <tr class="text-left text-xs text-gray-500 border-b">

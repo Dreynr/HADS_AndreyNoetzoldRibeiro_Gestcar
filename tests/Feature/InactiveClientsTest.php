@@ -130,6 +130,54 @@ class InactiveClientsTest extends TestCase
         ]);
     }
 
+    /**
+     * Dois cliques no botao criavam dois lembretes iguais.
+     */
+    public function test_clicar_duas_vezes_nao_cria_dois_follow_ups_iguais(): void
+    {
+        $client = $this->clientLastSeen('Sumido', 120);
+
+        $dados = [
+            'type' => 'retorno',
+            'title' => 'Chamar de volta',
+            'due_date' => today()->format('Y-m-d'),
+        ];
+
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->post(route('admin.clients.follow-ups.store', $client), $dados);
+        $this->actingAs($admin)
+            ->from(route('admin.clients.inactive'))
+            ->post(route('admin.clients.follow-ups.store', $client), $dados)
+            ->assertSessionHas('error');
+
+        $this->assertSame(1, FollowUp::where('client_id', $client->id)->count());
+    }
+
+    /**
+     * Mas depois de concluir o lembrete, criar outro igual tem que funcionar:
+     * o cliente sumiu de novo.
+     */
+    public function test_depois_de_concluir_pode_criar_o_mesmo_follow_up_de_novo(): void
+    {
+        $client = $this->clientLastSeen('Sumido', 120);
+
+        $dados = [
+            'type' => 'retorno',
+            'title' => 'Chamar de volta',
+            'due_date' => today()->format('Y-m-d'),
+        ];
+
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->post(route('admin.clients.follow-ups.store', $client), $dados);
+        FollowUp::where('client_id', $client->id)->update(['completed' => true, 'completed_at' => now()]);
+
+        $this->actingAs($admin)->post(route('admin.clients.follow-ups.store', $client), $dados);
+
+        $this->assertSame(2, FollowUp::where('client_id', $client->id)->count());
+    }
+
     public function test_cliente_nao_acessa_o_painel(): void
     {
         $cliente = User::factory()->create(['role' => 'cliente']);

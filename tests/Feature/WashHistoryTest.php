@@ -78,13 +78,23 @@ class WashHistoryTest extends TestCase
         $carro = Vehicle::factory()->create(['user_id' => $client->id, 'plate' => 'AAA1A11']);
         $moto = Vehicle::factory()->create(['user_id' => $client->id, 'plate' => 'BBB2B22']);
 
-        Wash::factory()->create(['user_id' => $client->id, 'vehicle_id' => $carro->id, 'service_name' => 'Lavagem do Carro']);
-        Wash::factory()->create(['user_id' => $client->id, 'vehicle_id' => $moto->id, 'service_name' => 'Lavagem da Moto']);
+        // Mesmo nome de servico nas duas, e valores diferentes: o filtro e
+        // conferido pelo valor, que so aparece na tabela do historico. O nome
+        // do servico tambem aparece no quadro "Servicos mais utilizados", que
+        // resume o cliente inteiro e de proposito nao segue o filtro.
+        Wash::factory()->create([
+            'user_id' => $client->id, 'vehicle_id' => $carro->id,
+            'service_name' => 'Lavagem simples', 'amount' => 111.00,
+        ]);
+        Wash::factory()->create([
+            'user_id' => $client->id, 'vehicle_id' => $moto->id,
+            'service_name' => 'Lavagem simples', 'amount' => 222.00,
+        ]);
 
         $this->actingAs($this->admin)
             ->get(route('admin.clients.show', [$client, 'wash_vehicle' => $carro->id]))
-            ->assertSee('Lavagem do Carro')
-            ->assertDontSee('Lavagem da Moto');
+            ->assertSee('111,00')
+            ->assertDontSee('222,00');
     }
 
     public function test_historico_filtra_por_periodo(): void
@@ -94,17 +104,42 @@ class WashHistoryTest extends TestCase
 
         Wash::factory()->create([
             'user_id' => $client->id, 'vehicle_id' => $vehicle->id,
-            'service_name' => 'Lavagem de Outubro', 'performed_at' => '2026-10-15 10:00:00',
+            'service_name' => 'Lavagem simples', 'amount' => 111.00,
+            'performed_at' => '2026-10-15 10:00:00',
         ]);
         Wash::factory()->create([
             'user_id' => $client->id, 'vehicle_id' => $vehicle->id,
-            'service_name' => 'Lavagem de Novembro', 'performed_at' => '2026-11-02 10:00:00',
+            'service_name' => 'Lavagem simples', 'amount' => 222.00,
+            'performed_at' => '2026-11-02 10:00:00',
         ]);
 
         $this->actingAs($this->admin)
             ->get(route('admin.clients.show', [$client, 'wash_from' => '2026-10-01', 'wash_to' => '2026-10-31']))
-            ->assertSee('Lavagem de Outubro')
-            ->assertDontSee('Lavagem de Novembro');
+            ->assertSee('111,00')
+            ->assertDontSee('222,00');
+    }
+
+    /**
+     * "Servicos mais utilizados" conta as lavagens (D-18), entao a lavagem
+     * avulsa — atendimento que nunca teve agendamento (D-14) — tambem entra.
+     */
+    public function test_servicos_mais_utilizados_conta_a_lavagem_avulsa(): void
+    {
+        $client = User::factory()->create(['role' => 'cliente']);
+        $vehicle = Vehicle::factory()->create(['user_id' => $client->id]);
+
+        Wash::factory()->create([
+            'user_id' => $client->id,
+            'vehicle_id' => $vehicle->id,
+            'appointment_id' => null,
+            'service_name' => 'Polimento avulso',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.clients.show', $client))
+            ->assertOk()
+            ->assertSee('Servicos mais utilizados')
+            ->assertSee('Polimento avulso');
     }
 
     public function test_historico_mostra_so_as_lavagens_do_proprio_cliente(): void

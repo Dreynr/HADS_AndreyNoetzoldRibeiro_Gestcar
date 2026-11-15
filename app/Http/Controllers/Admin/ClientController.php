@@ -165,15 +165,19 @@ class ClientController extends Controller
             'last_date' => $client->lastVisitDate(),
         ];
 
-        $topServices = $appointments->where('status', 'concluido')
-            ->groupBy('service_id')
-            ->map(fn ($group) => [
-                'name' => $group->first()->service->name,
-                'count' => $group->count(),
-            ])
-            ->sortByDesc('count')
-            ->take(3)
-            ->values();
+        // Conta as lavagens, e nao os agendamentos concluidos (D-18): a
+        // lavagem avulsa tambem e atendimento, e o nome vem da copia gravada
+        // na lavagem (D-17), para servico renomeado nao sumir do historico.
+        $topServices = $client->washes()
+            ->selectRaw('service_name, COUNT(*) as total')
+            ->groupBy('service_name')
+            ->orderByDesc('total')
+            ->limit(3)
+            ->get()
+            ->map(fn ($linha) => [
+                'name' => $linha->service_name,
+                'count' => (int) $linha->total,
+            ]);
 
         $pendingFollowUps = $client->followUps()->where('completed', false)->orderBy('due_date')->get();
         $completedFollowUps = $client->followUps()->where('completed', true)->latest('completed_at')->limit(5)->get();
@@ -274,6 +278,20 @@ class ClientController extends Controller
             'due_date' => 'required|date|after_or_equal:today',
             'type' => 'required|in:retorno,aniversario,personalizado',
         ]);
+
+        // Dois cliques no botao criavam dois follow-ups iguais. Se ja existe
+        // um em aberto com o mesmo tipo e titulo para este cliente, o segundo
+        // nao e lembrete novo — e o mesmo lembrete duas vezes.
+        $jaExiste = $client->followUps()
+            ->where('completed', false)
+            ->where('type', $request->type)
+            ->where('title', $request->title)
+            ->exists();
+
+        if ($jaExiste) {
+            return redirect()->back()
+                ->with('error', 'Este cliente ja tem um follow-up igual em aberto.');
+        }
 
         FollowUp::create([
             'client_id' => $client->id,
