@@ -22,8 +22,10 @@ class WashController extends Controller
 {
     public function index(Request $request): View
     {
-        $from = $request->input('from', today()->startOfMonth()->format('Y-m-d'));
-        $to = $request->input('to', today()->format('Y-m-d'));
+        // Mesmo cuidado da agenda: o periodo vem pela URL. Data invalida
+        // cai no padrao, em vez de devolver uma lista vazia sem explicacao.
+        $from = $this->dateOrDefault($request->input('from'), today()->startOfMonth());
+        $to = $this->dateOrDefault($request->input('to'), today());
 
         // Eager loading: sem ele, cada linha da tabela dispararia consultas
         // novas para o cliente e para o veiculo (problema do N+1).
@@ -38,6 +40,19 @@ class WashController extends Controller
         $total = Wash::whereBetween('performed_at', [$from . ' 00:00:00', $to . ' 23:59:59'])->sum('amount');
 
         return view('admin.washes.index', compact('washes', 'from', 'to', 'total'));
+    }
+
+    private function dateOrDefault(?string $valor, \Carbon\Carbon $padrao): string
+    {
+        if (!$valor) {
+            return $padrao->format('Y-m-d');
+        }
+
+        try {
+            return \Carbon\Carbon::parse($valor)->format('Y-m-d');
+        } catch (\Throwable $e) {
+            return $padrao->format('Y-m-d');
+        }
     }
 
     public function create(): View

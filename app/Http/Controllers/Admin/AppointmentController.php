@@ -16,8 +16,17 @@ class AppointmentController extends Controller
     public function index(Request $request): View
     {
         $view = $request->input('view', 'day');
-        $date = $request->input('date', today()->format('Y-m-d'));
-        $baseDate = Carbon::parse($date);
+
+        // O filtro chega pela URL, e URL se digita: `Carbon::parse('abc')`
+        // lanca excecao e derrubaria a agenda inteira com erro 500. Data
+        // invalida vira hoje, que e o padrao da tela.
+        try {
+            $baseDate = Carbon::parse($request->input('date', today()->format('Y-m-d')));
+        } catch (\Throwable $e) {
+            $baseDate = today();
+        }
+
+        $date = $baseDate->format('Y-m-d');
 
         switch ($view) {
             case 'week':

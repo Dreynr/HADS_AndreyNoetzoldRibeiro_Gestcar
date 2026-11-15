@@ -10,7 +10,12 @@ class Setting extends Model
 
     public static function getValue(string $key, string $default = ''): string
     {
-        return static::where('key', $key)->value('value') ?? $default;
+        $value = static::where('key', $key)->value('value');
+
+        // Valor gravado em branco conta como ausente. Sem isto, uma
+        // configuracao salva vazia viraria 0 no `(int)` e travaria a agenda
+        // inteira: `max_simple_per_period` igual a zero recusa todo mundo.
+        return ($value === null || $value === '') ? $default : $value;
     }
 
     public static function setValue(string $key, string $value): void
