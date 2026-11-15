@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Mail\AppointmentStatusMail;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Services\AppointmentNotifier;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class AppointmentController extends Controller
@@ -65,7 +64,7 @@ class AppointmentController extends Controller
         ));
     }
 
-    public function updateStatus(Request $request, Appointment $appointment): RedirectResponse
+    public function updateStatus(Request $request, Appointment $appointment, AppointmentNotifier $notifier): RedirectResponse
     {
         $request->validate([
             'status' => ['required', 'in:pendente,confirmado,concluido,cancelado'],
@@ -86,12 +85,11 @@ class AppointmentController extends Controller
 
         if (in_array($request->status, ['confirmado', 'cancelado', 'concluido'])) {
             $appointment->load(['user', 'vehicle', 'service', 'extras']);
-            try {
-                Mail::to($appointment->user->email)
-                    ->send(new AppointmentStatusMail($appointment, $request->status, $request->admin_notes));
-            } catch (\Exception $e) {
-                report($e);
-            }
+
+            // O notifier cuida dos dois canais e do registro de cada um.
+            // Ele nunca deixa escapar excecao, entao a mudanca de status
+            // continua valendo mesmo se o aviso falhar.
+            $notifier->statusChanged($appointment, $request->status, $request->admin_notes);
         }
 
         return redirect()->back()
