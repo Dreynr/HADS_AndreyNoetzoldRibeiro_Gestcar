@@ -170,7 +170,8 @@
                                             <form method="POST" action="{{ route('admin.appointments.update-status', $appointment) }}" class="inline">
                                                 @csrf @method('PATCH')
                                                 <input type="hidden" name="status" value="concluido">
-                                                <button type="submit" class="px-2.5 py-1.5 text-xs bg-blue-100 text-blue-800 rounded touch-manipulation active:bg-blue-200">Concluir</button>
+                                                <button type="submit"
+                                                    onclick="return confirm('{{ $appointment->dateHasNotArrived() ? 'Este agendamento e do dia ' . $appointment->scheduled_at->format('d/m/Y') . ', que ainda nao chegou. Concluir mesmo assim? Concluido e final.' : 'Marcar como concluido? Esse status e final e nao pode ser desfeito.' }}')" class="px-2.5 py-1.5 text-xs bg-blue-100 text-blue-800 rounded touch-manipulation active:bg-blue-200">Concluir</button>
                                             </form>
                                             <form method="POST" action="{{ route('admin.appointments.update-status', $appointment) }}" class="inline">
                                                 @csrf @method('PATCH')
@@ -255,7 +256,8 @@
                                                         <form method="POST" action="{{ route('admin.appointments.update-status', $appointment) }}" class="inline">
                                                             @csrf @method('PATCH')
                                                             <input type="hidden" name="status" value="concluido">
-                                                            <button type="submit" class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200">Concluir</button>
+                                                            <button type="submit"
+                                                    onclick="return confirm('{{ $appointment->dateHasNotArrived() ? 'Este agendamento e do dia ' . $appointment->scheduled_at->format('d/m/Y') . ', que ainda nao chegou. Concluir mesmo assim? Concluido e final.' : 'Marcar como concluido? Esse status e final e nao pode ser desfeito.' }}')" class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200">Concluir</button>
                                                         </form>
                                                         <form method="POST" action="{{ route('admin.appointments.update-status', $appointment) }}" class="inline">
                                                             @csrf @method('PATCH')

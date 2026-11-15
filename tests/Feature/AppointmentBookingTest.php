@@ -101,6 +101,54 @@ class AppointmentBookingTest extends TestCase
         $this->assertSame(1, Appointment::count());
     }
 
+    /**
+     * Agendamento de data que ja passou nao se cancela: ou foi atendido, e o
+     * admin conclui, ou houve falta, e o admin cancela. O botao some da tela
+     * do cliente, e a rota recusa mesmo se for chamada direto.
+     */
+    public function test_cliente_nao_cancela_agendamento_de_data_passada(): void
+    {
+        $passado = Appointment::factory()->create([
+            'user_id' => $this->client->id,
+            'vehicle_id' => $this->vehicle->id,
+            'service_id' => $this->simple->id,
+            'scheduled_at' => now()->subWeek()->setTime(17, 0),
+            'status' => 'confirmado',
+        ]);
+
+        $this->actingAs($this->client)
+            ->patch(route('appointments.cancel', $passado))
+            ->assertSessionHas('error');
+
+        $this->assertSame('confirmado', $passado->fresh()->status);
+
+        $this->actingAs($this->client)
+            ->get(route('appointments.index'))
+            ->assertOk()
+            ->assertDontSee('Cancelar Agendamento');
+    }
+
+    public function test_cliente_cancela_agendamento_futuro(): void
+    {
+        $futuro = Appointment::factory()->create([
+            'user_id' => $this->client->id,
+            'vehicle_id' => $this->vehicle->id,
+            'service_id' => $this->simple->id,
+            'scheduled_at' => now()->addWeek()->setTime(17, 0),
+            'status' => 'confirmado',
+        ]);
+
+        $this->actingAs($this->client)
+            ->get(route('appointments.index'))
+            ->assertSee('Cancelar Agendamento');
+
+        $this->actingAs($this->client)
+            ->patch(route('appointments.cancel', $futuro))
+            ->assertSessionHas('success');
+
+        $this->assertSame('cancelado', $futuro->fresh()->status);
+    }
+
     public function test_cancelar_libera_a_vaga(): void
     {
         $this->existingAppointment($this->simple);

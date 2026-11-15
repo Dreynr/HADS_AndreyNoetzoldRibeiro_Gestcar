@@ -42,7 +42,43 @@
                 @if($washes->isEmpty())
                     <p class="text-sm text-gray-500 py-6 text-center">Nenhuma lavagem registrada nesse periodo.</p>
                 @else
-                    <div class="overflow-x-auto">
+                    {{-- No celular vira cartao: a tabela tem sete colunas e o
+                         link de corrigir ficava fora da tela. --}}
+                    <div class="sm:hidden space-y-3">
+                        @foreach($washes as $wash)
+                            <div class="border rounded-lg p-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="font-medium text-gray-800">{{ $wash->user->name }}</span>
+                                    <span class="shrink-0 font-semibold text-green-700">
+                                        R$ {{ number_format($wash->amount, 2, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                {{-- O nome gravado na lavagem, nao o nome atual do servico (D-17). --}}
+                                <p class="mt-1 text-sm text-gray-700">{{ $wash->service_name }}</p>
+
+                                <p class="mt-1 text-xs text-gray-500">
+                                    {{ $wash->performed_at->format('d/m/Y') }}
+                                    · {{ $wash->vehicle->model }}
+                                    <span class="font-mono">{{ $wash->vehicle->plate }}</span>
+                                </p>
+
+                                <div class="mt-3 flex items-center justify-between">
+                                    @if($wash->appointment_id)
+                                        <a href="{{ route('admin.appointments.show', $wash->appointment_id) }}"
+                                           class="text-xs text-indigo-600">Ver agendamento</a>
+                                    @else
+                                        <span class="text-xs text-gray-500">Lavagem avulsa</span>
+                                    @endif
+
+                                    <a href="{{ route('admin.washes.edit', $wash) }}"
+                                       class="px-3 py-2 text-xs bg-gray-600 text-white rounded-md touch-manipulation">Corrigir</a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="hidden sm:block overflow-x-auto">
                         <table class="min-w-full text-sm">
                             <thead>
                                 <tr class="text-left text-xs text-gray-500 border-b">

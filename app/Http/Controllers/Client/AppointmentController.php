@@ -109,7 +109,7 @@ class AppointmentController extends Controller
     {
         abort_unless($appointment->user_id === auth()->id(), 403);
 
-        if (!in_array($appointment->status, ['pendente', 'confirmado'])) {
+        if (!$appointment->canBeCancelledByClient()) {
             return redirect()->route('appointments.index')
                 ->with('error', 'Este agendamento nao pode ser cancelado.');
         }

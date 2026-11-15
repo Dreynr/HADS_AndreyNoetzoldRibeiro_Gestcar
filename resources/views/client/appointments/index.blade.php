@@ -64,6 +64,10 @@
                                 <p class="mt-2 text-xs text-gray-500 italic">{{ $appointment->notes }}</p>
                             @endif
 
+            {{-- Agendamento de data que ja passou nao se cancela: ou foi
+                 atendido, e o admin conclui, ou houve falta, e o admin
+                 cancela. --}}
+            @if($appointment->canBeCancelledByClient())
                             <div class="mt-3 sm:mt-4 border-t pt-3">
                                 <form method="POST" action="{{ route('appointments.cancel', $appointment) }}"
                                       onsubmit="return confirm('Tem certeza que deseja cancelar este agendamento?')">
@@ -72,6 +76,7 @@
                                     <button type="submit" class="text-xs sm:text-sm text-red-600 hover:text-red-900 active:text-red-950 py-1 touch-manipulation">Cancelar Agendamento</button>
                                 </form>
                             </div>
+            @endif
                         </div>
                     @endforeach
                 </div>

@@ -98,6 +98,28 @@ class Appointment extends Model
         return $wash;
     }
 
+    /**
+     * O dia do atendimento ainda nao chegou.
+     *
+     * Concluir antes da data e permitido — as vezes o atendimento acontece
+     * adiantado —, mas a tela pede confirmacao, porque concluido e final.
+     */
+    public function dateHasNotArrived(): bool
+    {
+        return $this->scheduled_at->startOfDay()->isFuture();
+    }
+
+    /**
+     * O cliente so cancela agendamento que ainda vai acontecer. Agendamento
+     * de uma data que ja passou nao se cancela: ou foi atendido, e o admin
+     * conclui, ou o cliente faltou, e o admin cancela.
+     */
+    public function canBeCancelledByClient(): bool
+    {
+        return in_array($this->status, ['pendente', 'confirmado'])
+            && !$this->scheduled_at->startOfDay()->isPast();
+    }
+
     public function totalPrice(): float
     {
         $base = $this->service ? (float) $this->service->price : 0;

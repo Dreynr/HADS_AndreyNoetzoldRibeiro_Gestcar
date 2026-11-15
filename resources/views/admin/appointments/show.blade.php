@@ -166,7 +166,8 @@
                                 @csrf @method('PATCH')
                                 <input type="hidden" name="status" value="concluido">
                                 <input type="hidden" name="admin_notes" value="">
-                                <button type="submit" class="px-4 py-2.5 sm:py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 touch-manipulation">Concluido</button>
+                                <button type="submit"
+                                                    onclick="return confirm('{{ $appointment->dateHasNotArrived() ? 'Este agendamento e do dia ' . $appointment->scheduled_at->format('d/m/Y') . ', que ainda nao chegou. Concluir mesmo assim? Concluido e final.' : 'Marcar como concluido? Esse status e final e nao pode ser desfeito.' }}')" class="px-4 py-2.5 sm:py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 touch-manipulation">Concluido</button>
                             </form>
                             <form method="POST" action="{{ route('admin.appointments.update-status', $appointment) }}" class="inline"
                                   onsubmit="var n=document.getElementById('admin_notes_input');if(n)this.querySelector('[name=admin_notes]').value=n.value;">
