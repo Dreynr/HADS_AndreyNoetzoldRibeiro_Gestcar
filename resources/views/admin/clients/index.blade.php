@@ -2,9 +2,14 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-lg sm:text-xl text-gray-800 leading-tight">Clientes</h2>
-            <a href="{{ route('admin.clients.create') }}" class="bg-indigo-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-indigo-700 touch-manipulation">
-                Novo Cliente
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('admin.clients.inactive') }}" class="bg-gray-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-gray-800 touch-manipulation">
+                    Inativos
+                </a>
+                <a href="{{ route('admin.clients.create') }}" class="bg-indigo-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-indigo-700 touch-manipulation">
+                    Novo Cliente
+                </a>
+            </div>
         </div>
     </x-slot>
 

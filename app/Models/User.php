@@ -200,6 +200,13 @@ class User extends Authenticatable
      */
     public function visitsCount(): int
     {
+        // Quando a consulta ja trouxe a contagem pronta (`withCount`), usa
+        // ela. Sem isso, uma listagem de 15 clientes dispararia 15 consultas
+        // so para contar visitas — o problema do N+1.
+        if (array_key_exists('washes_count', $this->attributes)) {
+            return (int) $this->attributes['washes_count'];
+        }
+
         return $this->washes()->count();
     }
 
@@ -209,6 +216,14 @@ class User extends Authenticatable
      */
     public function lastVisitDate(): ?\Carbon\Carbon
     {
+        // Mesmo motivo do visitsCount: `withMax` traz a ultima visita junto
+        // com a listagem, numa consulta so.
+        if (array_key_exists('washes_max_performed_at', $this->attributes)) {
+            $ultima = $this->attributes['washes_max_performed_at'];
+
+            return $ultima ? \Carbon\Carbon::parse($ultima) : null;
+        }
+
         return $this->washes()
             ->latest('performed_at')
             ->value('performed_at');

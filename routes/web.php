@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin\AppointmentController as AdminAppointmentController;
 use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\StockController;
 use App\Http\Controllers\Admin\WashController;
 use App\Http\Controllers\Client\AppointmentController;
 use App\Http\Controllers\Client\VehicleController;
@@ -41,6 +43,7 @@ Route::middleware(['auth', 'role:cliente'])->group(function () {
 
 // Rotas do admin
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/clientes-inativos', [ClientController::class, 'inactive'])->name('clients.inactive');
     Route::resource('clients', ClientController::class)->parameters(['clients' => 'client']);
     Route::patch('/clients/{client}/toggle-active', [ClientController::class, 'toggleActive'])->name('clients.toggle-active');
 
@@ -62,8 +65,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/lavagens', [WashController::class, 'store'])->name('washes.store');
     Route::get('/lavagens/{wash}/editar', [WashController::class, 'edit'])->name('washes.edit');
     Route::patch('/lavagens/{wash}', [WashController::class, 'update'])->name('washes.update');
-    Route::get('/estoque', fn () => view('admin.stock.index'))->name('stock.index');
-    Route::get('/relatorios', fn () => view('admin.reports.index'))->name('reports.index');
+    Route::get('/estoque', [StockController::class, 'index'])->name('stock.index');
+    Route::get('/estoque/novo', [StockController::class, 'create'])->name('stock.create');
+    Route::post('/estoque', [StockController::class, 'store'])->name('stock.store');
+    Route::get('/estoque/{product}/editar', [StockController::class, 'edit'])->name('stock.edit');
+    Route::patch('/estoque/{product}', [StockController::class, 'update'])->name('stock.update');
+    Route::delete('/estoque/{product}', [StockController::class, 'destroy'])->name('stock.destroy');
+    Route::patch('/estoque/{product}/ativar', [StockController::class, 'toggleActive'])->name('stock.toggle-active');
+    Route::get('/estoque/{product}/movimentacoes', [StockController::class, 'movements'])->name('stock.movements');
+    Route::post('/estoque/{product}/movimentacoes', [StockController::class, 'storeMovement'])->name('stock.movements.store');
+    Route::get('/relatorios', [ReportController::class, 'index'])->name('reports.index');
 });
 
 require __DIR__.'/auth.php';

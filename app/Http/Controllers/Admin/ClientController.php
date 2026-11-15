@@ -8,6 +8,7 @@ use App\Models\ClientNote;
 use App\Models\FollowUp;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
@@ -26,16 +27,23 @@ class ClientController extends Controller
             });
         }
 
-        if ($segment = $request->input('segment')) {
-            $query->get()->filter(fn ($c) => $c->segment() === $segment);
-        }
-
         // Conta as lavagens, nao os agendamentos concluidos (D-18): e o
         // mesmo numero que o `visitsCount()` usa na ficha do cliente.
-        $clients = $query->withCount('washes as completed_count')
-            ->orderBy('name')
-            ->paginate(15)
-            ->withQueryString();
+        // O `withMax` traz junto a data da ultima visita, que o segment()
+        // precisa — as duas evitam uma consulta por linha da tabela.
+        $query->withCount('washes as completed_count')
+            ->withCount('washes')
+            ->withMax('washes', 'performed_at')
+            ->orderBy('name');
+
+        if ($segment = $request->input('segment')) {
+            // O segmento nao e uma coluna: ele e calculado a partir das
+            // visitas e da data da ultima (RF09). Por isso o filtro acontece
+            // na colecao, e a pagina e montada a mao depois.
+            $clients = $this->paginateSegment($query, $segment, $request);
+        } else {
+            $clients = $query->paginate(15)->withQueryString();
+        }
 
         $pendingFollowUps = FollowUp::where('completed', false)
             ->where('due_date', '<=', today())
@@ -45,6 +53,58 @@ class ClientController extends Controller
             ->get();
 
         return view('admin.clients.index', compact('clients', 'pendingFollowUps'));
+    }
+
+    /**
+     * Pagina uma lista filtrada por segmento (RF09 / UC09-HU01).
+     *
+     * Como o segmento e calculado em PHP, nao da para filtrar no banco nem
+     * deixar o paginate() do Eloquent contar as linhas. Entao a lista inteira
+     * e carregada, filtrada, e so a fatia da pagina atual vira resultado.
+     * A base de clientes de uma estetica cabe nisso com folga.
+     */
+    private function paginateSegment($query, string $segment, Request $request): LengthAwarePaginator
+    {
+        $porPagina = 15;
+        $pagina = $request->integer('page', 1) ?: 1;
+
+        $filtrados = $query->get()->filter(
+            fn (User $cliente) => $cliente->segment() === $segment
+        )->values();
+
+        return new LengthAwarePaginator(
+            $filtrados->forPage($pagina, $porPagina),
+            $filtrados->count(),
+            $porPagina,
+            $pagina,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+    }
+
+    /**
+     * Painel de clientes inativos (B-11 / RF09 / UC09).
+     *
+     * Inativo e quem passou de noventa dias sem atendimento — a mesma regra
+     * do `segment()`, para a tela nunca discordar do rotulo mostrado na
+     * listagem de clientes.
+     *
+     * Quem nunca foi atendido nao entra: sem visita nenhuma nao existe
+     * "tempo sem vir", e pelo `segment()` esse cliente e novo, nao inativo.
+     */
+    public function inactive(): View
+    {
+        $clients = User::where('role', 'cliente')
+            ->notAnonymized()
+            ->where('active', true)
+            ->withCount('washes')
+            ->withMax('washes', 'performed_at')
+            ->get()
+            ->filter(fn (User $cliente) => $cliente->segment() === 'inativo')
+            // Mais tempo sem vir primeiro: e quem precisa ser chamado antes.
+            ->sortByDesc(fn (User $cliente) => $cliente->daysSinceLastVisit())
+            ->values();
+
+        return view('admin.clients.inactive', compact('clients'));
     }
 
     public function create(): View
@@ -194,6 +254,12 @@ class ClientController extends Controller
 
     public function destroyNote(User $client, ClientNote $note): RedirectResponse
     {
+        // A nota precisa ser deste cliente. Sem esta checagem, trocar o id na
+        // URL apagaria a nota de outra pessoa: a rota diz "nota deste
+        // cliente", mas o Laravel so carrega os dois registros separados e
+        // nunca confere se um pertence ao outro.
+        abort_unless($note->client_id === $client->id, 404);
+
         $note->delete();
 
         return redirect()->route('admin.clients.show', $client)
@@ -217,12 +283,17 @@ class ClientController extends Controller
             'due_date' => $request->due_date,
         ]);
 
-        return redirect()->route('admin.clients.show', $client)
+        // Volta para a tela de onde o follow-up foi criado: a ficha do
+        // cliente ou o painel de inativos (B-11).
+        return redirect()->back()
             ->with('success', 'Follow-up criado.');
     }
 
     public function completeFollowUp(User $client, FollowUp $followUp): RedirectResponse
     {
+        // Mesma checagem da nota: o follow-up tem que ser deste cliente.
+        abort_unless($followUp->client_id === $client->id, 404);
+
         $followUp->update([
             'completed' => true,
             'completed_at' => now(),
