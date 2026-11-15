@@ -35,4 +35,22 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Z-API Omni - WhatsApp
+    |--------------------------------------------------------------------------
+    |
+    | Credenciais do canal de WhatsApp (RNF11: so no .env, nunca no codigo).
+    | Com 'enabled' desligado, o AppServiceProvider usa o LogWhatsAppSender e
+    | nada sai para o celular de ninguem.
+    |
+    */
+
+    'zapi' => [
+        'enabled' => env('ZAPI_ENABLED', false),
+        'base_url' => env('ZAPI_BASE_URL'),
+        'channel_id' => env('ZAPI_CHANNEL_ID'),
+        'secret_key' => env('ZAPI_SECRET_KEY'),
+    ],
+
 ];
