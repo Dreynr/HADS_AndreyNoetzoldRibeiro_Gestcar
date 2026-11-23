@@ -132,22 +132,32 @@ CREATE TABLE washes (
   FOREIGN KEY (service_id) REFERENCES services(id)
 );
 
+-- Estoque de produtos (B-12). O saldo fica guardado em products.quantity e
+-- so muda por uma movimentacao: assim a listagem e o alerta de minimo saem
+-- em uma consulta, e cada numero tem historico que o explique.
 CREATE TABLE products (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(80) NOT NULL UNIQUE,
-  unit VARCHAR(10) NOT NULL,
+  unit VARCHAR(10) NOT NULL COMMENT 'un | L | ml | kg',
   quantity DECIMAL(10,2) NOT NULL DEFAULT 0,
   min_quantity DECIMAL(10,2) NOT NULL,
-  active BOOLEAN NOT NULL DEFAULT TRUE
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL
 );
 
+-- Entradas e saidas. Nunca sao editadas nem apagadas: erro de lancamento se
+-- corrige com a movimentacao contraria. Por isso a FK nao tem ON DELETE:
+-- produto com movimentacao e inativado, nunca excluido.
 CREATE TABLE stock_movements (
   id INT AUTO_INCREMENT PRIMARY KEY,
   product_id INT NOT NULL,
   type VARCHAR(10) NOT NULL COMMENT 'entrada | saida',
   quantity DECIMAL(10,2) NOT NULL,
   notes TEXT NULL,
-  created_at DATETIME NOT NULL,
+  created_at DATETIME NULL,
+  updated_at DATETIME NULL,
+  INDEX (product_id, created_at),
   FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
@@ -157,17 +167,20 @@ ALTER TABLE users ADD COLUMN whatsapp_opt_in BOOLEAN NOT NULL DEFAULT FALSE COMM
 ALTER TABLE users ADD COLUMN whatsapp_opt_in_at DATETIME NULL COMMENT 'data da ultima escolha sobre o WhatsApp';
 ALTER TABLE users ADD COLUMN anonymized_at DATETIME NULL COMMENT 'preenchida quando o cliente exclui a conta';
 
--- Registro de cada envio de notificação, por canal (B-08)
+-- Registro de cada tentativa de aviso ao cliente, por canal (B-08).
+-- A linha e gravada no sucesso e na falha. O indice unico e o que impede o
+-- mesmo aviso de sair duas vezes pelo mesmo canal.
 CREATE TABLE notification_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  appointment_id INT NULL,
+  appointment_id INT NULL COMMENT 'nulo: nem todo aviso nasce de um agendamento',
   user_id INT NOT NULL,
-  channel VARCHAR(10) NOT NULL COMMENT 'email | whatsapp',
-  type VARCHAR(30) NOT NULL COMMENT 'reminder_1day | reminder_1hour | status_confirmado | status_cancelado | status_concluido',
+  channel VARCHAR(20) NOT NULL COMMENT 'email | whatsapp',
+  type VARCHAR(40) NOT NULL COMMENT 'reminder_1day | reminder_1hour | status_confirmado | status_cancelado | status_concluido',
   status VARCHAR(10) NOT NULL COMMENT 'sent | failed',
   error TEXT NULL,
-  created_at DATETIME NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (appointment_id, channel, type),
-  FOREIGN KEY (appointment_id) REFERENCES appointments(id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  INDEX (user_id, created_at),
+  FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
