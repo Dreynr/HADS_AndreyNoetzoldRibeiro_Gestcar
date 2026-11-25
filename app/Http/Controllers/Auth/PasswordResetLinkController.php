@@ -26,26 +26,26 @@ class PasswordResetLinkController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user) {
-            return back()->withInput()->withErrors([
-                'email' => 'Nao encontramos uma conta com esse e-mail.',
+        // A resposta e a mesma exista ou nao a conta. Dizer "nao encontramos
+        // uma conta com esse e-mail" entrega quais enderecos tem cadastro no
+        // sistema — e a mesma razao pela qual a tela de login nao diz qual
+        // dos dois campos errou.
+        if ($user) {
+            DB::table('password_reset_codes')->where('email', $request->email)->delete();
+
+            $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+            DB::table('password_reset_codes')->insert([
+                'email' => $request->email,
+                'code' => $code,
+                'expires_at' => now()->addMinutes(15),
+                'created_at' => now(),
             ]);
+
+            Mail::to($request->email)->send(new PasswordResetCodeMail($code));
         }
 
-        DB::table('password_reset_codes')->where('email', $request->email)->delete();
-
-        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-
-        DB::table('password_reset_codes')->insert([
-            'email' => $request->email,
-            'code' => $code,
-            'expires_at' => now()->addMinutes(15),
-            'created_at' => now(),
-        ]);
-
-        Mail::to($request->email)->send(new PasswordResetCodeMail($code));
-
         return redirect()->route('password.verify-code.form', ['email' => $request->email])
-            ->with('status', 'Enviamos um codigo de 6 digitos para o seu e-mail.');
+            ->with('status', 'Se existir uma conta com esse e-mail, enviamos um codigo de 6 digitos para ela.');
     }
 }

@@ -26,6 +26,7 @@ Route::middleware('guest')->group(function () {
         ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:password-request')
         ->name('password.email');
 
     Route::get('verify-code', [NewPasswordController::class, 'verifyCodeForm'])

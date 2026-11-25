@@ -22,5 +22,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Pagina guardada pelo navegador leva junto um token CSRF da sessao
+        // antiga, e o Laravel responde com a tela crua "419 Pagina expirada".
+        // Acontece, por exemplo, ao sair, apertar voltar e tentar entrar de
+        // novo. Em vez da tela de erro, devolve o formulario com um aviso.
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            $aviso = 'A pagina ficou aberta tempo demais e expirou. Tente de novo.';
+
+            return redirect()->back()
+                ->withInput($request->except('password', 'password_confirmation'))
+                ->with('status', $aviso)
+                ->with('error', $aviso);
+        });
     })->create();

@@ -262,4 +262,43 @@ class AppointmentBookingTest extends TestCase
 
         $this->assertSame('cancelado', $appointment->fresh()->status);
     }
+
+    /**
+     * O valor mostrado tem que ser o TOTAL, com os extras.
+     *
+     * O teste de aceitacao de 25/11/2026 achou telas discordando: "Meus
+     * Agendamentos" mostrava R$ 240,00 e o Historico e a agenda do admin
+     * mostravam R$ 40,00, o preco so do servico principal.
+     */
+    public function test_as_telas_mostram_o_valor_total_com_os_extras(): void
+    {
+        $extra = Service::factory()->extra()->create(['name' => 'Cera', 'price' => 30.00]);
+
+        $this->actingAs($this->client)->post(route('appointments.store'), [
+            'vehicle_id' => $this->vehicle->id,
+            'service_id' => $this->simple->id,
+            'date' => $this->weekday,
+            'period' => 'noite',
+            'extras' => [$extra->id],
+        ])->assertSessionHasNoErrors();
+
+        $appointment = Appointment::first();
+        $esperado = (float) $this->simple->price + 30.00;
+
+        $this->assertEquals($esperado, $appointment->totalPrice());
+
+        $total = number_format($esperado, 2, ',', '.');
+
+        $this->actingAs($this->client)
+            ->get(route('history.index'))
+            ->assertOk()
+            ->assertSee($total);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.appointments.index', ['date' => $this->weekday]))
+            ->assertOk()
+            ->assertSee($total);
+    }
 }

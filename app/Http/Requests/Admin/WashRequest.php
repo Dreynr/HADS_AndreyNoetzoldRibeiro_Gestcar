@@ -25,7 +25,7 @@ class WashRequest extends FormRequest
         $rules = [
             // O valor vem sugerido pelo sistema, mas e editavel: desconto,
             // ajuste, cortesia. Por isso `min:0` e nao `min:0.01`.
-            'amount' => ['required', 'numeric', 'min:0', 'max:99999.99'],
+            'amount' => ['required', 'numeric', 'gt:0', 'max:99999.99'],
             // Lavagem e fato: so se registra o que ja aconteceu.
             'performed_at' => ['required', 'date', 'before_or_equal:today'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -47,7 +47,7 @@ class WashRequest extends FormRequest
         return [
             'amount.required' => 'O valor cobrado e obrigatorio.',
             'amount.numeric' => 'O valor cobrado deve ser um numero.',
-            'amount.min' => 'O valor cobrado nao pode ser negativo.',
+            'amount.gt' => 'O valor cobrado deve ser maior que zero.',
             'performed_at.required' => 'A data do atendimento e obrigatoria.',
             'performed_at.before_or_equal' => 'A data do atendimento nao pode ser no futuro.',
             'notes.max' => 'As observacoes nao podem ter mais de 1000 caracteres.',

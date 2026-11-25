@@ -250,4 +250,44 @@ class WhatsAppNotificationTest extends TestCase
             'status' => 'sent',
         ]);
     }
+
+    /**
+     * Quando o CLIENTE cancela, o aviso tem que sair pelos mesmos canais da
+     * mudanca de status feita pelo admin. O teste de aceitacao de
+     * 25/11/2026 mostrou 14 cancelamentos sem nenhuma notificacao.
+     */
+    public function test_cancelamento_feito_pelo_cliente_avisa_os_dois_canais(): void
+    {
+        Mail::fake();
+        $sender = $this->fakeSender();
+        $this->app->instance(WhatsAppSender::class, $sender);
+
+        $cliente = $this->client(true);
+
+        $appointment = Appointment::factory()->create([
+            'user_id' => $cliente->id,
+            'scheduled_at' => now()->addWeek()->setTime(17, 0),
+            'status' => 'confirmado',
+        ]);
+
+        $this->actingAs($cliente)
+            ->patch(route('appointments.cancel', $appointment))
+            ->assertSessionHas('success');
+
+        $this->assertCount(1, $sender->sent);
+        $this->assertStringContainsString('cancelado', $sender->sent[0]['message']);
+
+        $this->assertDatabaseHas('notification_logs', [
+            'appointment_id' => $appointment->id,
+            'channel' => 'email',
+            'type' => 'status_cancelado',
+            'status' => 'sent',
+        ]);
+        $this->assertDatabaseHas('notification_logs', [
+            'appointment_id' => $appointment->id,
+            'channel' => 'whatsapp',
+            'type' => 'status_cancelado',
+            'status' => 'sent',
+        ]);
+    }
 }

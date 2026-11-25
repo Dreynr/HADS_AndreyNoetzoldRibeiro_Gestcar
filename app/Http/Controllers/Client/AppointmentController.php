@@ -9,6 +9,7 @@ use App\Models\Appointment;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\AppointmentNotifier;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -116,7 +117,7 @@ class AppointmentController extends Controller
             ->with('success', 'Agendamento realizado com sucesso!');
     }
 
-    public function cancel(Appointment $appointment): RedirectResponse
+    public function cancel(Appointment $appointment, AppointmentNotifier $notifier): RedirectResponse
     {
         abort_unless($appointment->user_id === auth()->id(), 403);
 
@@ -126,6 +127,13 @@ class AppointmentController extends Controller
         }
 
         $appointment->update(['status' => 'cancelado']);
+
+        // O cancelamento feito pelo cliente avisa pelos mesmos canais que a
+        // mudanca de status feita pelo admin. Antes nao saia nada, e a regra
+        // do RNF10 diz "e-mail sempre" — o cliente ficava sem comprovante de
+        // que o cancelamento valeu.
+        $appointment->load(['user', 'vehicle', 'service', 'extras']);
+        $notifier->statusChanged($appointment, 'cancelado');
 
         return redirect()->route('appointments.index')
             ->with('success', 'Agendamento cancelado com sucesso.');

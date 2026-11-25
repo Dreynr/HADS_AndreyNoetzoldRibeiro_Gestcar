@@ -26,7 +26,7 @@ class WashCorrectionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => ['required', 'numeric', 'min:0', 'max:99999.99'],
+            'amount' => ['required', 'numeric', 'gt:0', 'max:99999.99'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
@@ -36,7 +36,7 @@ class WashCorrectionRequest extends FormRequest
         return [
             'amount.required' => 'O valor cobrado e obrigatorio.',
             'amount.numeric' => 'O valor cobrado deve ser um numero.',
-            'amount.min' => 'O valor cobrado nao pode ser negativo.',
+            'amount.gt' => 'O valor cobrado deve ser maior que zero.',
             'notes.max' => 'As observacoes nao podem ter mais de 1000 caracteres.',
         ];
     }

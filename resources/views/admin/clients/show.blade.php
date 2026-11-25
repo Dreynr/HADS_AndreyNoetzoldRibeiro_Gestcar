@@ -210,7 +210,7 @@
                                         </div>
                                         <div class="flex items-center justify-between text-[11px] text-gray-500">
                                             <span>{{ $appt->scheduled_at->format('d/m/Y') }} — {{ $appt->scheduleLabel() }}</span>
-                                            <span class="font-medium">R$ {{ number_format($appt->service->price, 2, ',', '.') }}</span>
+                                            <span class="font-medium">R$ {{ number_format($appt->totalPrice(), 2, ',', '.') }}</span>
                                         </div>
                                     </a>
                                 @endforeach

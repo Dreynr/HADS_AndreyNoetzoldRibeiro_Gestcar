@@ -48,14 +48,44 @@ class PasswordResetTest extends TestCase
         $this->assertSame(6, strlen($code));
     }
 
-    public function test_email_nao_cadastrado_e_recusado(): void
+    /**
+     * E-mail sem conta recebe a MESMA resposta de um e-mail com conta.
+     *
+     * Antes o sistema respondia "nao encontramos uma conta com esse e-mail",
+     * e isso entregava quais enderecos tem cadastro. E a mesma razao pela
+     * qual a tela de login nao diz qual dos dois campos errou.
+     */
+    public function test_email_nao_cadastrado_recebe_a_mesma_resposta(): void
     {
         Mail::fake();
 
         $this->post('/forgot-password', ['email' => 'ninguem@exemplo.com'])
-            ->assertSessionHasErrors('email');
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('password.verify-code.form', ['email' => 'ninguem@exemplo.com']));
 
+        // Nenhum e-mail sai e nenhum codigo e criado: so a resposta e igual.
         Mail::assertNothingSent();
+        $this->assertDatabaseCount('password_reset_codes', 0);
+    }
+
+    /**
+     * RNF12 — pedir o codigo tem limite proprio, separado do limite de
+     * tentativas de digitar o codigo. Sem ele, dava para disparar dezenas
+     * de e-mails para a caixa de outra pessoa.
+     */
+    public function test_pedir_o_codigo_muitas_vezes_e_bloqueado(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()->create();
+
+        for ($tentativa = 1; $tentativa <= 5; $tentativa++) {
+            $this->post('/forgot-password', ['email' => $user->email])
+                ->assertStatus(302);
+        }
+
+        $this->post('/forgot-password', ['email' => $user->email])
+            ->assertStatus(429);
     }
 
     public function test_codigo_correto_leva_a_tela_de_nova_senha(): void

@@ -110,4 +110,28 @@ class StandaloneWashTest extends TestCase
         $this->actingAs($client)->get(route('admin.washes.index'))->assertForbidden();
         $this->actingAs($client)->get(route('admin.washes.create'))->assertForbidden();
     }
+
+    /**
+     * O teste de aceitacao de 25/11/2026 encontrou isto: o valor negativo era
+     * recusado, mas o ZERO passava, e a lavagem entrava no faturamento
+     * somando nada. Agora o valor cobrado tem que ser maior que zero, igual
+     * ao preco do servico.
+     */
+    public function test_lavagem_avulsa_com_valor_zero_e_recusada(): void
+    {
+        $client = $this->client();
+        $service = Service::factory()->create();
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.washes.store'), [
+                'user_id' => $client->id,
+                'vehicle_id' => $client->vehicles->first()->id,
+                'service_id' => $service->id,
+                'amount' => 0,
+                'performed_at' => today()->format('Y-m-d'),
+            ])
+            ->assertSessionHasErrors('amount');
+
+        $this->assertSame(0, Wash::count());
+    }
 }

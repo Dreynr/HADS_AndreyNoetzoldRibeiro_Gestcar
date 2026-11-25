@@ -145,7 +145,7 @@
 
                                     <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
                                         <span>{{ $appointment->scheduled_at->format('d/m/Y') }} — {{ $appointment->scheduleLabel() }}</span>
-                                        <span class="font-semibold text-gray-900">R$ {{ number_format($appointment->service->price, 2, ',', '.') }}</span>
+                                        <span class="font-semibold text-gray-900">R$ {{ number_format($appointment->totalPrice(), 2, ',', '.') }}</span>
                                     </div>
 
                                     <p class="text-xs text-gray-400 mb-2">{{ $appointment->vehicle->model }} - {{ $appointment->vehicle->plate }}</p>
@@ -217,7 +217,7 @@
                                                 {{ $appointment->service->name }}
                                             </td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                R$ {{ number_format($appointment->service->price, 2, ',', '.') }}
+                                                R$ {{ number_format($appointment->totalPrice(), 2, ',', '.') }}
                                             </td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm">
                                                 @switch($appointment->status)

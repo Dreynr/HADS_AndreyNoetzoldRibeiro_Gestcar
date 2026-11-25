@@ -5,7 +5,10 @@ namespace App\Providers;
 use App\Contracts\WhatsAppSender;
 use App\Services\LogWhatsAppSender;
 use App\Services\ZApiWhatsAppSender;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -49,6 +52,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Limite proprio para o PEDIDO do codigo de recuperacao (RNF12).
         //
+        // Ele precisa de chave separada: o `throttle:5,1` padrao do Laravel
+        // conta por IP, sem olhar a rota, entao pedir o codigo gastaria o
+        // mesmo saldo de tentativas de digitar o codigo. Aqui a conta e por
+        // e-mail mais IP, que e o que se quer proteger — a caixa de entrada
+        // de alguem.
+        RateLimiter::for('password-request', function (Request $request) {
+            $chave = strtolower((string) $request->input('email')) . '|' . $request->ip();
+
+            return Limit::perMinute(5)->by($chave);
+        });
     }
 }
