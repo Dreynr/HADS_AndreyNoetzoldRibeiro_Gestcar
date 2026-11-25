@@ -39,6 +39,7 @@ class StockMovementRequest extends FormRequest
             'quantity.required' => 'A quantidade e obrigatoria.',
             'quantity.numeric' => 'A quantidade deve ser um numero.',
             'quantity.gt' => 'A quantidade deve ser maior que zero.',
+            'quantity.max' => 'A quantidade e grande demais para uma movimentacao.',
             'notes.max' => 'As observacoes nao podem ter mais de 1000 caracteres.',
         ];
     }

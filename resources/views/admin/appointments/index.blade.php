@@ -144,7 +144,7 @@
                                     </div>
 
                                     <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
-                                        <span>{{ $appointment->scheduled_at->format('d/m/Y') }} — {{ \App\Models\Appointment::periodLabel($appointment->period) }}</span>
+                                        <span>{{ $appointment->scheduled_at->format('d/m/Y') }} — {{ $appointment->scheduleLabel() }}</span>
                                         <span class="font-semibold text-gray-900">R$ {{ number_format($appointment->service->price, 2, ',', '.') }}</span>
                                     </div>
 
@@ -204,7 +204,7 @@
                                         <tr class="{{ $appointment->status === 'cancelado' ? 'opacity-50' : '' }}">
                                             <td class="px-4 py-4 whitespace-nowrap text-sm">
                                                 <div class="font-medium text-gray-900">{{ $appointment->scheduled_at->format('d/m/Y') }}</div>
-                                                <div class="text-gray-500">{{ \App\Models\Appointment::periodLabel($appointment->period) }}</div>
+                                                <div class="text-gray-500">{{ $appointment->scheduleLabel() }}</div>
                                             </td>
                                             <td class="px-4 py-4 whitespace-nowrap text-sm">
                                                 <div class="font-medium text-gray-900">{{ $appointment->user->name }}</div>

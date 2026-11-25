@@ -45,7 +45,7 @@
                         </div>
                         <div>
                             <dt class="text-xs sm:text-sm font-medium text-gray-500">Periodo</dt>
-                            <dd class="text-sm text-gray-900 mt-0.5">{{ \App\Models\Appointment::periodLabel($appointment->period) }}</dd>
+                            <dd class="text-sm text-gray-900 mt-0.5">{{ $appointment->scheduleLabel() }}</dd>
                         </div>
                         <div>
                             <dt class="text-xs sm:text-sm font-medium text-gray-500">Valor Total</dt>

@@ -35,7 +35,7 @@
                                         @endswitch
                                     </div>
                                     <div class="flex items-center justify-between text-xs text-gray-500">
-                                        <span>{{ $appointment->scheduled_at->format('d/m/Y') }} — {{ \App\Models\Appointment::periodLabel($appointment->period) }}</span>
+                                        <span>{{ $appointment->scheduled_at->format('d/m/Y') }} — {{ $appointment->scheduleLabel() }}</span>
                                         <span class="font-semibold text-gray-900">R$ {{ number_format($appointment->service->price, 2, ',', '.') }}</span>
                                     </div>
                                 </div>
@@ -59,7 +59,7 @@
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 <div>{{ $appointment->scheduled_at->format('d/m/Y') }}</div>
-                                                <div class="text-xs text-gray-500">{{ \App\Models\Appointment::periodLabel($appointment->period) }}</div>
+                                                <div class="text-xs text-gray-500">{{ $appointment->scheduleLabel() }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 {{ $appointment->service->name }}

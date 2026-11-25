@@ -213,4 +213,27 @@ class AppointmentBookingTest extends TestCase
 
         $this->assertSame(2, Appointment::count());
     }
+
+    /**
+     * O horario escolhido tem que APARECER. O dado estava certo no banco e
+     * nas mensagens, mas todas as telas mostravam so a faixa do periodo
+     * ("Noite (17:00 - 22:00)"), entao quem marcava 19:30 nao tinha como
+     * conferir. Agora todas usam o Appointment::scheduleLabel().
+     */
+    public function test_as_telas_mostram_o_horario_escolhido(): void
+    {
+        $this->book($this->simple, 'noite', '19:30')->assertSessionHasNoErrors();
+
+        $this->actingAs($this->client)
+            ->get(route('appointments.index'))
+            ->assertOk()
+            ->assertSee('19:30');
+
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.appointments.index', ['date' => $this->weekday]))
+            ->assertOk()
+            ->assertSee('19:30');
+    }
 }

@@ -57,7 +57,7 @@
                                             </span>
                                         </div>
                                         <p class="text-xs text-gray-500">
-                                            {{ $appt->scheduled_at->format('d/m') }} — {{ \App\Models\Appointment::periodLabel($appt->period) }}
+                                            {{ $appt->scheduled_at->format('d/m') }} — {{ $appt->scheduleLabel() }}
                                         </p>
                                     </div>
                                 @endforeach
@@ -255,7 +255,7 @@
                                             </div>
                                             <p class="text-xs text-gray-500">
                                                 {{ $appt->scheduled_at->format('d/m/Y') }} —
-                                                {{ \App\Models\Appointment::periodLabel($appt->period) }}
+                                                {{ $appt->scheduleLabel() }}
                                             </p>
                                             <p class="text-xs text-gray-400">{{ $appt->vehicle->model }} — {{ $appt->vehicle->plate }}</p>
                                         </div>
@@ -516,6 +516,13 @@
             selectedDate = dateStr;
             selectedPeriod = null;
             bookingSection.classList.add('hidden');
+
+            // Trocar a data invalida a escolha anterior. O formulario ja fica
+            // escondido, mas os campos escondidos seguiriam com a data, o
+            // periodo e o horario antigos — estado sujo que um dia vira bug.
+            document.getElementById('form_date').value = '';
+            clearPeriodSelection();
+
             renderCalendar();
             loadPeriods(dateStr);
         }

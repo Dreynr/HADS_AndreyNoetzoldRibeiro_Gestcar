@@ -47,7 +47,7 @@
 
                             <div class="mt-3 space-y-1 text-xs sm:text-sm text-gray-600">
                                 <p>Data: <span class="font-medium">{{ $appointment->scheduled_at->format('d/m/Y') }}</span></p>
-                                <p>Periodo: <span class="font-medium">{{ \App\Models\Appointment::periodLabel($appointment->period) }}</span></p>
+                                <p>Periodo: <span class="font-medium">{{ $appointment->scheduleLabel() }}</span></p>
                                 <p>Valor: <span class="font-medium">R$ {{ number_format($appointment->totalPrice(), 2, ',', '.') }}</span></p>
                             </div>
 

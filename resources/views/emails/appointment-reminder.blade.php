@@ -55,7 +55,7 @@
                 </tr>
                 <tr>
                     <td style="padding:6px 0;color:#6b7280;font-size:13px;">Horario</td>
-                    <td style="padding:6px 0;color:#1f2937;font-size:14px;">{{ \App\Models\Appointment::periodLabel($appointment->period) }}</td>
+                    <td style="padding:6px 0;color:#1f2937;font-size:14px;">{{ $appointment->scheduleLabel() }}</td>
                 </tr>
             </table>
         </td></tr>

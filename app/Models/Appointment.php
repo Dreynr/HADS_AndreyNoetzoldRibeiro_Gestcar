@@ -164,6 +164,35 @@ class Appointment extends Model
     }
 
     /**
+     * O nome curto do periodo, sem a faixa de horas.
+     */
+    public static function periodName(string $period): string
+    {
+        return match ($period) {
+            'manha' => 'Manha',
+            'tarde' => 'Tarde',
+            'noite' => 'Noite',
+            default => $period,
+        };
+    }
+
+    /**
+     * Como o agendamento aparece nas telas e nas mensagens (D-22).
+     *
+     * O horario escolhido vem primeiro, porque e o que o cliente precisa
+     * saber. O periodo vem entre parenteses, porque e ele que organiza a
+     * agenda e define a capacidade.
+     *
+     * Existe num lugar so para as telas nunca discordarem entre si: antes
+     * desta correcao, o sistema gravava 19:30 e todas as telas mostravam
+     * "Noite (17:00 - 22:00)".
+     */
+    public function scheduleLabel(): string
+    {
+        return $this->scheduled_at->format('H:i') . ' (' . static::periodName($this->period) . ')';
+    }
+
+    /**
      * Os dois horarios de cada periodo (D-22).
      *
      * O periodo continua organizando o dia — ele e que tem capacidade e e

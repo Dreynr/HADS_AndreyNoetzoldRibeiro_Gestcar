@@ -126,7 +126,7 @@
                                         @else
                                             {{ $appt->scheduled_at->format('d/m') }} —
                                         @endif
-                                        {{ \App\Models\Appointment::periodLabel($appt->period) }}
+                                        {{ $appt->scheduleLabel() }}
                                     </span>
                                     <span class="text-gray-400">{{ $appt->vehicle->model }}</span>
                                 </div>
@@ -158,7 +158,7 @@
                                                     {{ $appt->scheduled_at->format('d/m/Y') }}
                                                 @endif
                                             </div>
-                                            <div class="text-xs text-gray-500">{{ \App\Models\Appointment::periodLabel($appt->period) }}</div>
+                                            <div class="text-xs text-gray-500">{{ $appt->scheduleLabel() }}</div>
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm">
                                             <div class="font-medium text-gray-900">{{ $appt->user->name }}</div>

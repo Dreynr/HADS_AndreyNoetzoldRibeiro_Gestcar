@@ -53,9 +53,11 @@ class ProductRequest extends FormRequest
             'unit.max' => 'A unidade nao pode ter mais de 10 caracteres.',
             'quantity.numeric' => 'A quantidade inicial deve ser um numero.',
             'quantity.min' => 'A quantidade inicial nao pode ser negativa.',
+            'quantity.max' => 'A quantidade inicial e grande demais.',
             'min_quantity.required' => 'O estoque minimo e obrigatorio.',
             'min_quantity.numeric' => 'O estoque minimo deve ser um numero.',
             'min_quantity.min' => 'O estoque minimo nao pode ser negativo.',
+            'min_quantity.max' => 'O estoque minimo e grande demais.',
         ];
     }
 }
