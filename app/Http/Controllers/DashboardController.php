@@ -55,6 +55,16 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('client.dashboard', compact('vehicles', 'principalServices', 'extraServices', 'upcomingAppointments'));
+        // Os horarios de cada periodo vao para a tela a partir do model, para
+        // o que o cliente ve ser exatamente o que o servidor aceita (D-22).
+        $periodSlots = [
+            'manha' => Appointment::periodSlots('manha'),
+            'tarde' => Appointment::periodSlots('tarde'),
+            'noite' => Appointment::periodSlots('noite'),
+        ];
+
+        return view('client.dashboard', compact(
+            'vehicles', 'principalServices', 'extraServices', 'upcomingAppointments', 'periodSlots'
+        ));
     }
 }

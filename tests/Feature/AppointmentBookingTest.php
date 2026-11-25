@@ -43,14 +43,20 @@ class AppointmentBookingTest extends TestCase
         $this->weekday = now()->addWeek()->next('Monday')->format('Y-m-d');
     }
 
-    private function book(Service $service, string $period = 'noite')
+    private function book(Service $service, string $period = 'noite', ?string $slot = null)
     {
-        return $this->actingAs($this->client)->post(route('appointments.store'), [
+        $dados = [
             'vehicle_id' => $this->vehicle->id,
             'service_id' => $service->id,
             'date' => $this->weekday,
             'period' => $period,
-        ]);
+        ];
+
+        if ($slot !== null) {
+            $dados['slot'] = $slot;
+        }
+
+        return $this->actingAs($this->client)->post(route('appointments.store'), $dados);
     }
 
     private function existingAppointment(Service $service, string $status = 'pendente'): Appointment
@@ -162,5 +168,49 @@ class AppointmentBookingTest extends TestCase
         $this->book($this->simple)->assertSessionHasNoErrors();
 
         $this->assertSame(2, Appointment::whereIn('status', ['pendente', 'confirmado'])->count());
+    }
+
+    /**
+     * D-22 — o periodo ganhou dois horarios. Sem escolha do cliente, vale o
+     * primeiro: a noite comeca as 17:00.
+     */
+    public function test_sem_escolha_o_agendamento_fica_no_primeiro_horario(): void
+    {
+        $this->book($this->simple)->assertSessionHasNoErrors();
+
+        $this->assertSame('17:00', Appointment::first()->scheduled_at->format('H:i'));
+    }
+
+    public function test_cliente_pode_escolher_o_segundo_horario_do_periodo(): void
+    {
+        $this->book($this->simple, 'noite', '19:30')->assertSessionHasNoErrors();
+
+        $this->assertSame('19:30', Appointment::first()->scheduled_at->format('H:i'));
+    }
+
+    /**
+     * Horario que nao pertence ao periodo escolhido e recusado, em vez de
+     * corrigido em silencio: o cliente nao pode achar que marcou um horario
+     * e o sistema ter marcado outro.
+     */
+    public function test_horario_de_outro_periodo_e_recusado(): void
+    {
+        $this->book($this->simple, 'noite', '08:00')->assertSessionHasErrors('slot');
+
+        $this->assertSame(0, Appointment::count());
+    }
+
+    /**
+     * O horario e preferencia dentro do periodo: a capacidade continua sendo
+     * do periodo inteiro, entao dois clientes podem escolher as 17:00.
+     */
+    public function test_o_horario_nao_muda_a_capacidade_do_periodo(): void
+    {
+        $this->book($this->simple, 'noite', '17:00')->assertSessionHasNoErrors();
+        $this->book($this->simple, 'noite', '17:00')->assertSessionHasNoErrors();
+
+        $this->book($this->simple, 'noite', '19:30')->assertSessionHasErrors('period');
+
+        $this->assertSame(2, Appointment::count());
     }
 }

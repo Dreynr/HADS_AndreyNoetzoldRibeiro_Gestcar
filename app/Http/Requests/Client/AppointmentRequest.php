@@ -18,6 +18,11 @@ class AppointmentRequest extends FormRequest
             'service_id' => ['required', 'exists:services,id'],
             'date' => ['required', 'date', 'after:today'],
             'period' => ['required', 'in:manha,tarde,noite'],
+
+            // O horario e opcional: sem escolha, vale o primeiro do periodo.
+            // Se o periodo dele confere e tarefa do controller, porque
+            // depende do periodo escolhido (D-22).
+            'slot' => ['nullable', 'string', 'date_format:H:i'],
             'extras' => ['nullable', 'array'],
             'extras.*' => ['exists:services,id'],
             'notes' => ['nullable', 'string', 'max:500'],
@@ -35,6 +40,7 @@ class AppointmentRequest extends FormRequest
             'date.after' => 'O agendamento deve ser para uma data futura.',
             'period.required' => 'Selecione o periodo.',
             'period.in' => 'Periodo invalido.',
+            'slot.date_format' => 'Horario invalido.',
             'notes.max' => 'As observacoes nao podem ter mais de 500 caracteres.',
         ];
     }

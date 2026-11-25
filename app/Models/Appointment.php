@@ -163,6 +163,41 @@ class Appointment extends Model
         };
     }
 
+    /**
+     * Os dois horarios de cada periodo (D-22).
+     *
+     * O periodo continua organizando o dia — ele e que tem capacidade e e
+     * ele que um servico completo reserva inteiro. O horario e a preferencia
+     * do cliente dentro do periodo, e e dele que os lembretes partem.
+     *
+     * Cada periodo e dividido ao meio: a noite vai das 17h as 22h, entao o
+     * segundo horario comeca as 19:30.
+     *
+     * @return array<int, string>
+     */
+    public static function periodSlots(string $period): array
+    {
+        return match ($period) {
+            'manha' => ['08:00', '10:00'],
+            'tarde' => ['13:00', '15:00'],
+            'noite' => ['17:00', '19:30'],
+            default => ['17:00'],
+        };
+    }
+
+    /**
+     * Sem escolha do cliente, vale o primeiro horario do periodo.
+     */
+    public static function defaultSlot(string $period): string
+    {
+        return static::periodSlots($period)[0];
+    }
+
+    public static function isValidSlot(string $period, string $slot): bool
+    {
+        return in_array($slot, static::periodSlots($period), true);
+    }
+
     public static function periodStart(string $period): int
     {
         return match ($period) {

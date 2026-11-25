@@ -197,7 +197,8 @@ class WhatsAppNotificationTest extends TestCase
 
         $appointment = Appointment::factory()->status('confirmado')->create([
             'user_id' => $this->client(true)->id,
-            'scheduled_at' => now()->addDay()->setTime(17, 0),
+            // Dentro das 24 horas: e quando o lembrete de um dia sai (D-22).
+            'scheduled_at' => now()->addHours(20),
             'reminder_1day_sent' => false,
         ]);
 
@@ -230,7 +231,8 @@ class WhatsAppNotificationTest extends TestCase
 
         $appointment = Appointment::factory()->status('confirmado')->create([
             'user_id' => $this->client(true)->id,
-            'scheduled_at' => now()->addDay()->setTime(17, 0),
+            // Dentro das 24 horas: e quando o lembrete de um dia sai (D-22).
+            'scheduled_at' => now()->addHours(20),
             'reminder_1day_sent' => false,
         ]);
 

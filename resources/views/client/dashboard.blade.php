@@ -132,6 +132,18 @@
                                 @csrf
                                 <input type="hidden" name="date" id="form_date">
                                 <input type="hidden" name="period" id="form_period">
+                                <input type="hidden" name="slot" id="form_slot">
+
+                                {{-- Horario dentro do periodo (D-22). A capacidade continua
+                                     sendo do periodo; o horario e a preferencia do cliente,
+                                     e e dele que os lembretes partem. --}}
+                                <div id="slotBlock" class="hidden mb-4">
+                                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Horario</label>
+                                    <div id="slotGrid" class="flex flex-wrap gap-2"></div>
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        Os lembretes sao enviados com base neste horario.
+                                    </p>
+                                </div>
 
                                 <div class="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-4 mb-4">
                                     <div>
@@ -573,6 +585,58 @@
             });
         }
 
+        // Os horarios de cada periodo vem do model, para a tela nunca
+        // discordar da regra que o servidor aplica (D-22).
+        const PERIOD_SLOTS = @json($periodSlots);
+
+        function renderSlots(periodKey) {
+            const slotBlock = document.getElementById('slotBlock');
+            const slotGrid = document.getElementById('slotGrid');
+            const slots = PERIOD_SLOTS[periodKey] || [];
+
+            slotGrid.innerHTML = '';
+            document.getElementById('form_slot').value = '';
+
+            if (slots.length === 0) {
+                slotBlock.classList.add('hidden');
+                return;
+            }
+
+            slotBlock.classList.remove('hidden');
+
+            slots.forEach(function (hora, indice) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = hora;
+                btn.dataset.slot = hora;
+                btn.className = 'slot-btn px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-indigo-50 touch-manipulation';
+                btn.addEventListener('click', function () {
+                    selectSlot(hora);
+                });
+                slotGrid.appendChild(btn);
+
+                // Sem escolha do cliente, vale o primeiro horario do periodo.
+                if (indice === 0) {
+                    selectSlot(hora);
+                }
+            });
+        }
+
+        function selectSlot(hora) {
+            document.getElementById('form_slot').value = hora;
+
+            document.querySelectorAll('.slot-btn').forEach(function (b) {
+                b.className = b.dataset.slot === hora
+                    ? 'slot-btn px-4 py-2 text-sm border-2 border-indigo-600 bg-indigo-600 text-white rounded-md touch-manipulation'
+                    : 'slot-btn px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-indigo-50 touch-manipulation';
+            });
+
+            const resumo = document.getElementById('summaryPeriod');
+            if (resumo && resumo.dataset.label) {
+                resumo.textContent = resumo.dataset.label + ' as ' + hora;
+            }
+        }
+
         function selectPeriod(period) {
             selectedPeriod = period.key;
             loadPeriods(selectedDate);
@@ -582,7 +646,12 @@
 
             const parts = selectedDate.split('-');
             document.getElementById('summaryDate').textContent = parts[2] + '/' + parts[1] + '/' + parts[0];
-            document.getElementById('summaryPeriod').textContent = period.label;
+
+            const resumo = document.getElementById('summaryPeriod');
+            resumo.dataset.label = period.label;
+            resumo.textContent = period.label;
+
+            renderSlots(period.key);
 
             bookingSection.classList.remove('hidden');
             setTimeout(() => {
@@ -593,6 +662,8 @@
         function clearPeriodSelection() {
             selectedPeriod = null;
             document.getElementById('form_period').value = '';
+            document.getElementById('form_slot').value = '';
+            document.getElementById('slotBlock').classList.add('hidden');
             document.getElementById('summaryPeriod').textContent = 'selecione um periodo acima';
         }
 

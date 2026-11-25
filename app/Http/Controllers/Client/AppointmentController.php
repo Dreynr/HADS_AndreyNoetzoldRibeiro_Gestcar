@@ -74,7 +74,18 @@ class AppointmentController extends Controller
             return back()->withInput()->withErrors(['period' => $check['error']]);
         }
 
-        $scheduledAt = $carbon->copy()->setTime(Appointment::periodStart($period), 0);
+        // O horario escolhido dentro do periodo (D-22). Sem escolha, vale o
+        // primeiro. Se vier um horario que nao e daquele periodo, recusa em
+        // vez de corrigir calado — senao o cliente acha que marcou um
+        // horario e o sistema marcou outro.
+        if ($request->filled('slot') && !Appointment::isValidSlot($period, $request->slot)) {
+            return back()->withInput()->withErrors(['slot' => 'Horario indisponivel para este periodo.']);
+        }
+
+        $slot = $request->input('slot') ?: Appointment::defaultSlot($period);
+        [$hora, $minuto] = explode(':', $slot);
+
+        $scheduledAt = $carbon->copy()->setTime((int) $hora, (int) $minuto);
 
         $appointment = Appointment::create([
             'user_id' => auth()->id(),

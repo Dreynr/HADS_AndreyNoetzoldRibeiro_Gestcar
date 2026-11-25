@@ -171,6 +171,7 @@ class AppointmentNotifier
     {
         return "Serviço: {$appointment->service->name}"
             . "\nData: {$appointment->scheduled_at->format('d/m/Y')}"
+            . "\nHorário: {$appointment->scheduled_at->format('H:i')}"
             . "\nPeríodo: " . Appointment::periodLabel($appointment->period);
     }
 }
