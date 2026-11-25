@@ -52,12 +52,20 @@ class ServiceController extends Controller
 
     public function destroy(Service $service): RedirectResponse
     {
-        if ($service->appointments()->whereIn('status', ['pendente', 'confirmado'])->exists()) {
+        // Um servico e usado de duas formas: como principal, em
+        // `appointments.service_id`, e como extra, em `appointment_extras`.
+        // As duas contam — olhar so a primeira fazia o sistema tentar
+        // excluir um servico ainda referenciado, e o banco recusava com
+        // erro de chave estrangeira.
+        $emUsoAgora = $service->appointments()->whereIn('status', ['pendente', 'confirmado'])->exists()
+            || $service->appointmentsAsExtra()->whereIn('appointments.status', ['pendente', 'confirmado'])->exists();
+
+        if ($emUsoAgora) {
             return redirect()->route('admin.services.index')
                 ->with('error', 'Nao e possivel excluir um servico com agendamentos pendentes ou confirmados.');
         }
 
-        if ($service->appointments()->exists() || $service->washes()->exists()) {
+        if ($service->appointments()->exists() || $service->washes()->exists() || $service->appointmentsAsExtra()->exists()) {
             $service->update(['active' => false]);
 
             return redirect()->route('admin.services.index')

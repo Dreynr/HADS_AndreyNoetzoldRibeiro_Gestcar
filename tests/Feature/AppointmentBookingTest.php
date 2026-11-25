@@ -236,4 +236,30 @@ class AppointmentBookingTest extends TestCase
             ->assertOk()
             ->assertSee('19:30');
     }
+
+    /**
+     * Cancelar duas vezes tem que devolver mensagem, nao erro 404. O teste
+     * de aceitacao relatou 404 ao repetir o cancelamento.
+     */
+    public function test_cancelar_duas_vezes_devolve_mensagem_e_nao_erro(): void
+    {
+        $appointment = Appointment::factory()->create([
+            'user_id' => $this->client->id,
+            'vehicle_id' => $this->vehicle->id,
+            'service_id' => $this->simple->id,
+            'scheduled_at' => now()->addWeek()->setTime(17, 0),
+            'status' => 'confirmado',
+        ]);
+
+        $this->actingAs($this->client)
+            ->patch(route('appointments.cancel', $appointment))
+            ->assertSessionHas('success');
+
+        $this->actingAs($this->client)
+            ->patch(route('appointments.cancel', $appointment))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertSame('cancelado', $appointment->fresh()->status);
+    }
 }
